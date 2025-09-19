@@ -870,11 +870,13 @@ name = "deployer"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "ethereum-types",
  "ethrex-l2-rpc",
  "ethrex-rpc",
  "ethrex-sdk",
  "eyre",
  "hex",
+ "reqwest",
  "secp256k1",
  "tokio",
 ]
