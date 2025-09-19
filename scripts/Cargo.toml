@@ -17,9 +17,9 @@ tokio = { version = "1.36.0", features = ["full"] }
 ethereum-types = { version = "0.15.1", features = ["serialize"] }
 
 
-ethrex-sdk = { path = "../../ethrex/crates/l2/sdk", package = "ethrex-sdk" }
-ethrex-l2-rpc = { path = "../../ethrex/crates/l2/networking/rpc", package = "ethrex-l2-rpc" }
-ethrex-rpc = { path = "../../ethrex/crates/networking/rpc", package = "ethrex-rpc" }
+ethrex-sdk = { git = "https://github.com/lambdaclass/ethrex", package = "ethrex-sdk", tag = "v0.0.4-alpha" }
+ethrex-l2-rpc = { git = "https://github.com/lambdaclass/ethrex", package = "ethrex-l2-rpc", tag = "v0.0.4-alpha" }
+ethrex-rpc = { git = "https://github.com/lambdaclass/ethrex", package = "ethrex-rpc", tag = "v0.0.4-alpha" }
 
 [[bin]]
 name = "deployer"
