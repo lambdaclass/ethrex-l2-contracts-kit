@@ -6,7 +6,7 @@ import "./interfaces/IERC20L2.sol";
 contract WETH9 is IERC20L2 {
     // IERC20L2 implementation
     address public L1_TOKEN = address(0);
-    address public constant BRIDGE = 0x000000000000000000000000000000FFff;
+    address public constant BRIDGE = 0x000000000000000000000000000000000000FFff;
     constructor(address l1Addr) {
         L1_TOKEN = l1Addr;
     }
@@ -36,8 +36,6 @@ contract WETH9 is IERC20L2 {
     string public symbol = "WETH";
     uint8 public decimals = 18;
 
-    event Approval(address indexed src, address indexed guy, uint wad);
-    event Transfer(address indexed src, address indexed dst, uint wad);
     event Deposit(address indexed dst, uint wad);
     event Withdrawal(address indexed src, uint wad);
 
