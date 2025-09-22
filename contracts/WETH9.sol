@@ -24,8 +24,11 @@ contract WETH9 is IERC20L2 {
         revert("WETH9: mints are not allowed");
     }
 
-    function crosschainBurn(address, uint256) external view onlyBridge {
-        revert("WETH9: burns are not allowed");
+    function crosschainBurn(address from, uint256 amount) external onlyBridge {
+        require(balanceOf[from] >= amount);
+        balanceOf[from] -= amount;
+        payable(from).transfer(amount);
+        emit Transfer(from, address(0), amount);
     }
 
     // WETH9 implementation
@@ -43,7 +46,8 @@ contract WETH9 is IERC20L2 {
         deposit();
     }
     function deposit() public payable {
-        revert("WETH9: deposits are not allowed");
+        balanceOf[msg.sender] += msg.value;
+        emit Deposit(msg.sender, msg.value);
     }
     function withdraw(uint wad) public {
         require(balanceOf[msg.sender] >= wad);
