@@ -6,7 +6,7 @@ import "./interfaces/IERC20L2.sol";
 contract WETH9 is IERC20L2 {
     // IERC20L2 implementation
     address public L1_TOKEN = address(0);
-    address public constant BRIDGE = 0x000000000000000000000000000000FFff;
+    address public constant BRIDGE = address(0xffff);
     constructor(address l1Addr) {
         L1_TOKEN = l1Addr;
     }
@@ -20,15 +20,16 @@ contract WETH9 is IERC20L2 {
         return L1_TOKEN;
     }
 
-    function crosschainMint(address to, uint256 amount) external onlyBridge {
-        balanceOf[to] += amount;
-        emit Transfer(address(0), to, amount);
+    /// We don't allow minting of WETH9 via the bridge, ie cross-chain mints.
+    /// Instead users should deposit ETH directly via the WETH9 interface.
+    function crosschainMint(address, uint256) external view onlyBridge {
+        revert("WETH9: mints are not allowed");
     }
 
-    function crosschainBurn(address from, uint256 amount) external onlyBridge {
-        require(balanceOf[from] >= amount);
-        balanceOf[from] -= amount;
-        emit Transfer(from, address(0), amount);
+    /// We don't allow burning of WETH9 via the bridge due to not having bridged assets.
+    /// Instead users should deposit/withdraw ETH directly via the WETH9 interface.
+    function crosschainBurn(address, uint256) external view onlyBridge {
+        revert("WETH9: burns are not allowed");
     }
 
     // WETH9 implementation
@@ -36,8 +37,6 @@ contract WETH9 is IERC20L2 {
     string public symbol = "WETH";
     uint8 public decimals = 18;
 
-    event Approval(address indexed src, address indexed guy, uint wad);
-    event Transfer(address indexed src, address indexed dst, uint wad);
     event Deposit(address indexed dst, uint wad);
     event Withdrawal(address indexed src, uint wad);
 
@@ -48,7 +47,8 @@ contract WETH9 is IERC20L2 {
         deposit();
     }
     function deposit() public payable {
-        revert("Deposits are not allowed");
+        balanceOf[msg.sender] += msg.value;
+        emit Deposit(msg.sender, msg.value);
     }
     function withdraw(uint wad) public {
         require(balanceOf[msg.sender] >= wad);
