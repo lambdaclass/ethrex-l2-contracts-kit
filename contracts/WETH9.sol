@@ -6,7 +6,7 @@ import "./interfaces/IERC20L2.sol";
 contract WETH9 is IERC20L2 {
     // IERC20L2 implementation
     address public L1_TOKEN = address(0);
-    address public constant BRIDGE = 0x000000000000000000000000000000000000FFff;
+    address public constant BRIDGE = address(0xffff);
     constructor(address l1Addr) {
         L1_TOKEN = l1Addr;
     }
@@ -20,15 +20,16 @@ contract WETH9 is IERC20L2 {
         return L1_TOKEN;
     }
 
+    /// We don't allow minting of WETH9 via the bridge, ie cross-chain mints.
+    /// Instead users should deposit ETH directly via the WETH9 interface.
     function crosschainMint(address, uint256) external view onlyBridge {
         revert("WETH9: mints are not allowed");
     }
 
-    function crosschainBurn(address from, uint256 amount) external onlyBridge {
-        require(balanceOf[from] >= amount);
-        balanceOf[from] -= amount;
-        payable(from).transfer(amount);
-        emit Transfer(from, address(0), amount);
+    /// We don't allow burning of WETH9 via the bridge due to not having bridged assets.
+    /// Instead users should deposit/withdraw ETH directly via the WETH9 interface.
+    function crosschainBurn(address, uint256) external view onlyBridge {
+        revert("WETH9: burns are not allowed");
     }
 
     // WETH9 implementation
