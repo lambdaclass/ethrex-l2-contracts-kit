@@ -116,7 +116,11 @@ cd examples/uniswap/contracts/swap
 make deps
 ```
 
-2. Compile the contract
+2. Check INonfungiblePositionManager address
+
+On the `LiquidityProvider.sol` file check that the address on line 13 is the same that the output from the [uniswap deployment](#deploy-uniswap-contracts) step
+
+3. Compile the contract
 
 ```
 solc \
@@ -131,7 +135,7 @@ solc \
   LiquidityProvider.sol
 ```
 
-3. Deploy the contract
+4. Deploy the contract
 
 ```shell
 rex deploy <CONTRACT-BYTECODE> 0 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --rpc-url http://localhost:1729
