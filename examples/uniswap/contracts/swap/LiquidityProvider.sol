@@ -32,8 +32,8 @@ contract LiquidityProvider is IERC721Receiver {
             uint256 amount1
         )
     {
-        uint256 amount0ToMint = 1000;
-        uint256 amount1ToMint = 1000;
+        uint256 amount0ToMint = 1000000000000000000;
+        uint256 amount1ToMint = 1000000000000000000;
 
         // The contract should be authorized before calling this function to spend the tokens
         TransferHelper.safeTransferFrom(WETH, msg.sender, address(this), amount0ToMint);
