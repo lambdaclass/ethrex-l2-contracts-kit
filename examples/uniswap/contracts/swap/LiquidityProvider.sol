@@ -10,7 +10,9 @@ contract LiquidityProvider is IERC721Receiver {
 
     uint24 public constant poolFee = 3000;
 
-    INonfungiblePositionManager public immutable nonfungiblePositionManager = INonfungiblePositionManager(0x9fCF7D13d10dEdF17d0f24C62f0cf4ED462f65b7);
+    INonfungiblePositionManager public immutable nonfungiblePositionManager = INonfungiblePositionManager(0xc744616E5E263B2a0BD344eb3dcD9EDeAFFe8A61);
+
+    event PositionMinted(uint256 indexed tokenId,uint128 liquidity,uint256 amount0,uint256 amount1);
 
     function onERC721Received(
         address /*operator*/,
@@ -39,11 +41,11 @@ contract LiquidityProvider is IERC721Receiver {
 
         TransferHelper.safeApprove(WETH, address(nonfungiblePositionManager), amount0ToMint);
         TransferHelper.safeApprove(TEST_TOKEN, address(nonfungiblePositionManager), amount1ToMint);
-
+        // token0 has to be < than token1
         INonfungiblePositionManager.MintParams memory params =
             INonfungiblePositionManager.MintParams({
-                token0: WETH,
-                token1: TEST_TOKEN,
+                token0: TEST_TOKEN,
+                token1: WETH,
                 fee: poolFee,
                 tickLower: -887220,
                 tickUpper: 887220,
@@ -56,5 +58,7 @@ contract LiquidityProvider is IERC721Receiver {
             });
 
         (tokenId, liquidity, amount0, amount1) = nonfungiblePositionManager.mint(params);
+
+        emit PositionMinted(tokenId, liquidity, amount0, amount1);
     }
 }
