@@ -292,3 +292,148 @@ rex call 0xeC7ed8038B76DbcB8F78b189EFf9D7C7373A45BE "balanceOf(address)" 0x41F31
 ```
 
 You should have close to 1WETH minus the 0.3% fee.
+
+# Use the uniswap interface
+
+## Prerequisites
+
+- [Yarn](https://yarnpkg.com/)
+- [Node](https://nodejs.org/en)
+- [Rex](https://github.com/lambdaclass/rex)
+- Follow the instructions from [Swap tokens with Uniswap v3 on ethrex L2](#swap-tokens-with-uniswap-v3-on-ethrex-l2) up to [Add liquidity to the pool](#add-liquidity-to-the-pool-by-minting-a-new-position)
+
+## Steps
+
+### Download and build all the dependencies
+
+#### SDK Core
+
+```shell
+git clone -b ethrex_support https://github.com/lambdaclass/sdk-core
+```
+
+```shell
+cd sdk-core
+```
+
+Update `src/addresses.ts` from lines 69..77 with the deployed uniswap v3 contracts, also update line 183 with the swapRouter02 address
+
+```shell
+yarn install
+```
+
+```shell
+yarn build
+```
+
+#### Smart order router
+
+```shell
+git clone -b ethrex_support https://github.com/lambdaclass/smart-order-router
+```
+
+```shell
+cd smart-order-router
+```
+
+```shell
+npm install
+```
+
+```shell
+npm run build
+```
+
+#### Permit2
+
+```shell
+git clone https://github.com/Uniswap/permit2
+```
+
+Follow the instructions to deploy the permit2 contract to `0x000000000022D473030F116dDEE9F6B43aC78BA3`
+
+#### Universal router
+
+```shell
+git clone -b ethrex_support --recurse-submodules https://github.com/lambdaclass/universal-router
+```
+
+Follow the instructions from the readme to deploy the universal router contract to the L2 using the script `DeployEthrexDev.s.sol`
+
+#### Universal router sdk
+
+```shell
+git clone -b ethrex_support https://github.com/lambdaclass/universal-router-sdk
+```
+
+```shell
+cd universal-router-sdk
+```
+
+Update the router constant at `src/utils/constants.ts` with the new router address
+
+```shell
+yarn install
+```
+
+```shell
+yarn build
+```
+
+#### Interface
+
+### Deploy the uniswap api
+
+1. Clone the repo
+
+```shell
+git clone -b ethrex_support https://github.com/lambdaclass/routing-api && cd routing-api
+```
+
+2. Install the dependencies
+
+```shell
+npm install
+```
+
+3. Start the API
+
+```shell
+npm run sls:dev
+```
+
+### Deploy the interface
+
+1. Clone the repo
+```shell
+git clone -b ethrex_support https://github.com/lambdaclass/uniswap-interface && cd uniswap-interface
+```
+
+2. Install the dependencies
+
+```shell
+yarn install
+```
+
+3. Start the local server
+
+```shell
+yarn web start
+```
+
+### Perform a swap
+
+1. Approve the universal router to spend your TEST
+
+```shell
+rex send 0x000000000022D473030F116dDEE9F6B43aC78BA3 \
+"approve(address,address,uint160,uint48)" \
+0xB66dd10F098f62141A536e92f6e8f7f9633893E2 \
+<UNIVERSAL-ROUTER-ADDRESS> \
+1461501637330902918203684832716283019655932542975 \
+281474976710655 \
+--private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 \
+--rpc-url localhost:1729
+```
+
+2. Perform the swap using the uniswap interface
