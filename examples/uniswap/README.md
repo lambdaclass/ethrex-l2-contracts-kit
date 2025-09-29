@@ -26,7 +26,7 @@ This should deploy WETH9 to the address 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45
 2. Send some eth to the contract to mint some WETH
 
 ```shell
-rex send --rpc-url http://localhost:1729 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --value 10000000000000000000
+rex send --rpc-url http://localhost:1729 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --value 100000000000000000000000
 ```
 
 This will mint 10WETH you can check your new balance with:
@@ -72,6 +72,9 @@ git checkout HEAD^
 
 2. Install dependencies
 
+> [!NOTE]
+> You need to use node 20
+
 ```shell
 yarn install
 ```
@@ -82,7 +85,7 @@ yarn install
 3. Deploy contracts
 
 ```shell
-NODE_OPTIONS=--openssl-legacy-provider yarn start --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --weth9-address 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be --json-rpc http://localhost:1729 --native-currency-label "ETH" --owner-address 0x0000000000000000000000000000000000000001
+NODE_OPTIONS=--openssl-legacy-provider yarn start --private-key 0x1bc8b78019f35d4447a774e837d414a3db9e1dea5cfc4e9dc2fc3904969ab51f --weth9-address 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be --json-rpc http://localhost:1729 --native-currency-label "ETH" --owner-address 0x0000000000000000000000000000000000000001
 ```
 
 4. List the deployed contracts
@@ -93,22 +96,26 @@ cat state.json
 
 ```json
 {
-  "v3CoreFactoryAddress": "0xBf9646Bf89624f5b1617Cef863E765c82F2ceD5f",
-  "multicall2Address": "0x4b8d115d560c7c4988D2B8b84f411406574442Ce",
-  "proxyAdminAddress": "0xD0131576FB0e50968e6fe5DEDa1e673297A4EF55",
-  "tickLensAddress": "0xdEb1481F062db511358b2497ad1C2eB23DB76225",
-  "nftDescriptorLibraryAddressV1_3_0": "0xC3D5369cc2520647E53bB2a68e53ffb1693bf742",
-  "nonfungibleTokenPositionDescriptorAddressV1_3_0": "0x39786bd79Fe10D3C72427b4Cdd7923648caE149E",
-  "descriptorProxyAddress": "0xC37007BA477Bda14F23a8B69aC0Dfcd798c3f2b5",
-  "nonfungibleTokenPositionManagerAddress": "0xc744616E5E263B2a0BD344eb3dcD9EDeAFFe8A61",
-  "v3MigratorAddress": "0xB29e716E27Af469b0DA1ba73F0651eE139f0304d",
-  "v3StakerAddress": "0x556C04B2B08Dd2f7Cefd01626AC789547649a1E6",
-  "quoterV2Address": "0xEE3E6620cb102FcD3b34782E88a4259A192bF1e9",
-  "swapRouter02": "0xD16759a138B4800309834377DFcd0a8d68BDb1fB"
+  "v3CoreFactoryAddress": "0xAF66f763079a9026bC7324B5804f28c35f921c8b",
+  "multicall2Address": "0x4040a0A5EA13921Ad00f14A1ab9711e9610AA874",
+  "proxyAdminAddress": "0x739019a7FB66e36e533B21263A9cD2cC97E43289",
+  "tickLensAddress": "0xeb6596A945014A6Bb072Fe6cd580aF8058a0eAb9",
+  "nftDescriptorLibraryAddressV1_3_0": "0x0Ca99b5E83f44D058794386889B9B48802F27E8f",
+  "nonfungibleTokenPositionDescriptorAddressV1_3_0": "0xDd034561d4bf0ac9eB67a232432EDf91D33192CE",
+  "descriptorProxyAddress": "0xDb9B6e53e4A4A62B6867eedB940D145a869723C0",
+  "nonfungibleTokenPositionManagerAddress": "0xC15C9DB90e3523F3Fe45529A05E8F59A16B93486",
+  "v3MigratorAddress": "0x4E1f06a3Add264D0B26c2DCBbf22d22715d1EcB8",
+  "v3StakerAddress": "0x86b9250aB7518D8b32B29060Ff3157f6de54aaAd",
+  "quoterV2Address": "0x2051f1Ae370aB1DA2f66FA88672466170Af23196",
+  "swapRouter02": "0x8bFCc50961F2f9c4f2F247eea04293F72088435F"
 }
 ```
 
 We will use the v3CoreFactoryAddress, nonfungibleTokenPositionManagerAddress and swapRouter02 addresses in this example
+
+```shell
+export FACTORY_ADDRESS=0xAF66f763079a9026bC7324B5804f28c35f921c8b
+```
 
 ### Create a liquidity pool
 
@@ -116,24 +123,27 @@ Next we will create a liquidity pool for the WETH/TEST swap with a 0.3% fee tier
 create the pool with:
 
 ```shell
-rex send --rpc-url http://localhost:1729 <FACTORY-ADDRESS> --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "createPool(address,address,uint24)" 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 3000
+rex send --rpc-url http://localhost:1729 $FACTORY-ADDRESS --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "createPool(address,address,uint24)" 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 3000
 ```
 
 You can check the pool exists calling the uniswap factory contract:
 
 ```shell
-rex call 0xBf9646Bf89624f5b1617Cef863E765c82F2ceD5f "getPool(address,address,uint24)" 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be 3000 --rpc-url http://localhost:1729
+rex call $FACTORY-ADDRESS "getPool(address,address,uint24)" 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be 3000 --rpc-url http://localhost:1729
 ```
 
-Will return the address 0xF62dF99F23C52D2721a8B86739bc624162470F00
+This will return the pool address We'll put the address in an ENV_VAR to use in the next commands.
 
+```shell
+export LIQUIDITY_POOL_ADDRESS=0x3701452a2b3faacfebd24d306ea9da464d607209
+```
 
 ### Initialize the liquidity pool
 
 initialize the pool with calldata for a 1WETH to 1TEST price:
 
 ```shell
-rex send --rpc-url http://localhost:1729 0xF62dF99F23C52D2721a8B86739bc624162470F00 --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "initialize(uint160)" 79228162514264337593543950336
+rex send --rpc-url http://localhost:1729 $LIQUIDITY_POOL_ADDRESS --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "initialize(uint160)" 79228162514264337593543950336
 ```
 
 ### Deploy the liquidity provider contract
@@ -175,14 +185,14 @@ rex deploy <CONTRACT-BYTECODE> 0 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1
 Copy the bytecode from `contracts/swap/solc_out/LiquidityProvider.bin` rex will return the contract address for example:
 
 ```
-Contract deployed in tx: 0x1f42faf95e4dce6fd57e34a07a2c2b0bbd83d153574b5a5a509f415c6825501c
-Contract address: 0xa0c79e7f98c9914c337d5b010af208b98f23f117
+Contract deployed in tx: 0xb42ecc29fa4c1844db0257687bdce5521556e3e7a0fd25c7fca8a96479d9557e
+Contract address: 0x4b8d115d560c7c4988d2b8b84f411406574442ce
 ```
 
 But yours could be different. We'll put the address in an ENV_VAR to use in the next commands
 
 ```shell
-export LIQUIDITY_PROVIDER_ADDRESS=0xa0c79e7f98c9914c337d5b010af208b98f23f117
+export LIQUIDITY_PROVIDER_ADDRESS=0x4b8d115d560c7c4988d2b8b84f411406574442ce
 ```
 
 ### Add liquidity to the pool by minting a new position
@@ -190,13 +200,13 @@ export LIQUIDITY_PROVIDER_ADDRESS=0xa0c79e7f98c9914c337d5b010af208b98f23f117
 1. Authorize the Liquidity provider contract to spend your WETH tokens
 
 ```shell
-rex send --rpc-url http://localhost:1729 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "approve(address, uint256)" $LIQUIDITY_PROVIDER_ADDRESS 10000000000000000000
+rex send --rpc-url http://localhost:1729 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "approve(address, uint256)" $LIQUIDITY_PROVIDER_ADDRESS 1000000000000000000000000000000
 ```
 
 2. Authorize the Liquidity provider contract to spend your TEST tokens
 
 ```shell
-rex send --rpc-url http://localhost:1729 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "approve(address, uint256)" $LIQUIDITY_PROVIDER_ADDRESS 10000000000000000000
+rex send --rpc-url http://localhost:1729 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "approve(address, uint256)" $LIQUIDITY_PROVIDER_ADDRESS 1000000000000000000000000000000
 ```
 
 3. Mint a new position
@@ -208,7 +218,7 @@ rex send --rpc-url http://localhost:1729 $LIQUIDITY_PROVIDER_ADDRESS --private-k
 4. Check the liquidity of the pool
 
 ```shell
-rex call 0xF62dF99F23C52D2721a8B86739bc624162470F00 "liquidity()" --rpc-url http://localhost:1729
+rex call $LIQUIDITY_POOL_ADDRESS "liquidity()" --rpc-url http://localhost:1729
 ```
 
 ### Deploy swap contract

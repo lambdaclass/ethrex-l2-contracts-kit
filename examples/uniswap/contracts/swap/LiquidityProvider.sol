@@ -10,7 +10,7 @@ contract LiquidityProvider is IERC721Receiver {
 
     uint24 public constant poolFee = 3000;
 
-    INonfungiblePositionManager public immutable nonfungiblePositionManager = INonfungiblePositionManager(0xc744616E5E263B2a0BD344eb3dcD9EDeAFFe8A61);
+    INonfungiblePositionManager public immutable nonfungiblePositionManager = INonfungiblePositionManager(0xC15C9DB90e3523F3Fe45529A05E8F59A16B93486);
 
     event PositionMinted(uint256 indexed tokenId,uint128 liquidity,uint256 amount0,uint256 amount1);
 
@@ -32,8 +32,8 @@ contract LiquidityProvider is IERC721Receiver {
             uint256 amount1
         )
     {
-        uint256 amount0ToMint = 1000000000000000000;
-        uint256 amount1ToMint = 1000000000000000000;
+        uint256 amount0ToMint = 100000000000000000000000;
+        uint256 amount1ToMint = 100000000000000000000000;
 
         // The contract should be authorized before calling this function to spend the tokens
         TransferHelper.safeTransferFrom(WETH, msg.sender, address(this), amount0ToMint);
