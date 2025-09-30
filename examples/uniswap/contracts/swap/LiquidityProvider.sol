@@ -5,7 +5,7 @@ import '@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.s
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 contract LiquidityProvider is IERC721Receiver {
-    address public constant WETH = 0xeC7ed8038B76DbcB8F78b189EFf9D7C7373A45BE;
+    address public constant WETH = 0x36CCFC7163a2C2cdF7a6D6DA202eb9c7aa18E4eA;
     address public constant TEST_TOKEN = 0xB66dd10F098f62141A536e92f6e8f7f9633893E2;
 
     uint24 public constant poolFee = 3000;
@@ -41,11 +41,11 @@ contract LiquidityProvider is IERC721Receiver {
 
         TransferHelper.safeApprove(WETH, address(nonfungiblePositionManager), amount0ToMint);
         TransferHelper.safeApprove(TEST_TOKEN, address(nonfungiblePositionManager), amount1ToMint);
-        // token0 has to be < than token1
+        // token0 has to be < than token1 else this will revert with an unknown reason
         INonfungiblePositionManager.MintParams memory params =
             INonfungiblePositionManager.MintParams({
-                token0: TEST_TOKEN,
-                token1: WETH,
+                token0: WETH,
+                token1: TEST_TOKEN,
                 fee: poolFee,
                 tickLower: -887220,
                 tickUpper: 887220,
