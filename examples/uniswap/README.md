@@ -438,17 +438,4 @@ yarn web start
 
 ### Perform a swap
 
-1. Approve the universal router to spend your TEST
-
-```shell
-rex send 0x000000000022D473030F116dDEE9F6B43aC78BA3 \
-"approve(address,address,uint160,uint48)" \
-0xB66dd10F098f62141A536e92f6e8f7f9633893E2 \
-<UNIVERSAL-ROUTER-ADDRESS> \
-1461501637330902918203684832716283019655932542975 \
-281474976710655 \
---private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 \
---rpc-url localhost:1729
-```
-
-2. Perform the swap using the uniswap interface
+1. Perform the swap using the uniswap interface
