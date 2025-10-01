@@ -77,6 +77,7 @@ rex call 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 "balanceOf(address)" 0x0000b
 
 ```shell
 git clone https://github.com/lambdaclass/deploy-v3
+cd deploy-v3
 git checkout stable_deployment
 git checkout HEAD^
 ```
