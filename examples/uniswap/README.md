@@ -56,7 +56,11 @@ We will deploy test token, using the deterministic deployer contract located at 
 rex send 0x4e59b44847b379578588920ca78fbf26c0b4956c --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --rpc-url http://localhost:1729 --calldata 0x0000000000000000000000000000000000000000000000000000000000000000<REST_OF_THE_CODE>
 ```
 
-This should deploy TEST token contract to 0xB66dd10F098f62141A536e92f6e8f7f9633893E2.
+This should deploy TEST token contract to 0xB66dd10F098f62141A536e92f6e8f7f9633893E2. You can check this by calling:
+
+```shell
+rex code 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 http://localhost:1729
+```
 
 2. Mint some free tokens to your account
 
