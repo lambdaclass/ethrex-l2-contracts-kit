@@ -286,7 +286,7 @@ rex send --rpc-url http://localhost:1729 --private-key 0xe4f7dc8b199fdaac6693c9c
 ```
 
 ```shell
-rex send --rpc-url http://localhost:1729 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --value 10000000
+rex send --rpc-url http://localhost:1729 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --value 1000000000000000000
 ```
 
 2. Approve the swap contract to spend TEST tokens
