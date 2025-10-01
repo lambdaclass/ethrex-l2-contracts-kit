@@ -241,7 +241,7 @@ rex call $LIQUIDITY_POOL_ADDRESS "liquidity()" --rpc-url http://localhost:1729
 
 1. Check swapRouter02 address
 
-On the `Swap.sol` file check that the address on line 7 is the same that the output from the [uniswap deployment](#deploy-uniswap-contracts) step
+On the `Swap.sol` file check that the address on line 7 is the same that the output from the [uniswap deployment](#deploy-uniswap-contracts) step. Also the WETH9 address should match your WETH deployment.
 
 2. Compile the contract
 
