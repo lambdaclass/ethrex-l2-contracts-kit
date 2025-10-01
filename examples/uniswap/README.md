@@ -21,18 +21,29 @@ cd scripts
 cargo run --bin deployer -- --rpc-url http://localhost:1729 --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --l1-token 0x0000000000000000000000000000000000000000 --salt 0x0000000000000000000000000000000000000000000000000000000000000000
 ```
 
-This should deploy WETH9 to the address 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be
+This should deploy WETH9 and show a message with the address:
+
+```
+deployed with tx hash 0xe793d192165eee21c63c10a8b8669ee409a780417e2b07d4bae37404412c9704
+deployed at address 0x36ccfc7163a2c2cdf7a6d6da202eb9c7aa18e4ea
+```
+
+We'll put the address in an ENV_VAR to use in the next commands
+
+```shell
+export WETH_ADDRESS=0x36ccfc7163a2c2cdf7a6d6da202eb9c7aa18e4ea
+```
 
 2. Send some eth to the contract to mint some WETH
 
 ```shell
-rex send --rpc-url http://localhost:1729 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --value 100000000000000000000000
+rex send --rpc-url http://localhost:1729 $WETH_ADDRESS --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --value 100000000000000000000000
 ```
 
 This will mint 10WETH you can check your new balance with:
 
 ```shell
-rex call 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e --rpc-url http://localhost:1729
+rex call $WETH_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e --rpc-url http://localhost:1729
 ```
 
 ### Deploy TEST token on L2
@@ -85,10 +96,10 @@ yarn install
 3. Deploy contracts
 
 ```shell
-NODE_OPTIONS=--openssl-legacy-provider yarn start --private-key 0x1bc8b78019f35d4447a774e837d414a3db9e1dea5cfc4e9dc2fc3904969ab51f --weth9-address 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be --json-rpc http://localhost:1729 --native-currency-label "ETH" --owner-address 0x0000000000000000000000000000000000000001
+NODE_OPTIONS=--openssl-legacy-provider yarn start --private-key 0x1bc8b78019f35d4447a774e837d414a3db9e1dea5cfc4e9dc2fc3904969ab51f --weth9-address $WETH_ADDRESS --json-rpc http://localhost:1729 --native-currency-label "ETH" --owner-address 0x0000000000000000000000000000000000000001
 ```
 
-4. List the deployed contracts
+4. List the deployed contracts, yours could be different:
 
 ```shell
 cat state.json
@@ -123,19 +134,19 @@ Next we will create a liquidity pool for the WETH/TEST swap with a 0.3% fee tier
 create the pool with:
 
 ```shell
-rex send --rpc-url http://localhost:1729 $FACTORY-ADDRESS --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "createPool(address,address,uint24)" 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 3000
+rex send --rpc-url http://localhost:1729 $FACTORY_ADDRESS --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "createPool(address,address,uint24)" $WETH_ADDRESS 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 3000
 ```
 
 You can check the pool exists calling the uniswap factory contract:
 
 ```shell
-rex call $FACTORY-ADDRESS "getPool(address,address,uint24)" 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be 3000 --rpc-url http://localhost:1729
+rex call $FACTORY_ADDRESS "getPool(address,address,uint24)" 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 $WETH_ADDRESS 3000 --rpc-url http://localhost:1729
 ```
 
 This will return the pool address We'll put the address in an ENV_VAR to use in the next commands.
 
 ```shell
-export LIQUIDITY_POOL_ADDRESS=0x3701452a2b3faacfebd24d306ea9da464d607209
+export LIQUIDITY_POOL_ADDRESS=0x54af7e84298e1f9e5c4065c14a5848e5f94efec3
 ```
 
 ### Initialize the liquidity pool
@@ -159,7 +170,7 @@ make deps
 
 2. Check nonfungibleTokenPositionManagerAddress address
 
-On the `LiquidityProvider.sol` file check that the address on line 13 is the same that the output from the [uniswap deployment](#deploy-uniswap-contracts) step
+On the `LiquidityProvider.sol` file check that the address on line 13 is the same that the output from the [uniswap deployment](#deploy-uniswap-contracts) step and that the WETH9 address is the same as in [weth deployment](#deploy-weth9-contract-on-l2)
 
 3. Compile the contract
 
@@ -200,7 +211,7 @@ export LIQUIDITY_PROVIDER_ADDRESS=0x4b8d115d560c7c4988d2b8b84f411406574442ce
 1. Authorize the Liquidity provider contract to spend your WETH tokens
 
 ```shell
-rex send --rpc-url http://localhost:1729 0xec7ed8038b76dbcb8f78b189eff9d7c7373a45be --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "approve(address, uint256)" $LIQUIDITY_PROVIDER_ADDRESS 1000000000000000000000000000000
+rex send --rpc-url http://localhost:1729 $WETH_ADDRESS --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "approve(address, uint256)" $LIQUIDITY_PROVIDER_ADDRESS 1000000000000000000000000000000
 ```
 
 2. Authorize the Liquidity provider contract to spend your TEST tokens
@@ -288,7 +299,143 @@ rex send --rpc-url http://localhost:1729 $SWAP_CONTRACT_ADDRESS  --private-key 0
 4. Check WETH balance
 
 ```shell
-rex call 0xeC7ed8038B76DbcB8F78b189EFf9D7C7373A45BE "balanceOf(address)" 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF --rpc-url http://localhost:1729
+rex call $WETH_ADDRESS "balanceOf(address)" 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF --rpc-url http://localhost:1729
 ```
 
 You should have close to 1WETH minus the 0.3% fee.
+
+# Use the uniswap interface
+
+## Prerequisites
+
+- [Yarn](https://yarnpkg.com/)
+- [Node](https://nodejs.org/en)
+- [Rex](https://github.com/lambdaclass/rex)
+- Follow the instructions from [Swap tokens with Uniswap v3 on ethrex L2](#swap-tokens-with-uniswap-v3-on-ethrex-l2) up to [Add liquidity to the pool](#add-liquidity-to-the-pool-by-minting-a-new-position)
+
+## Steps
+
+### Download and build all the dependencies
+
+#### SDK Core
+
+```shell
+git clone -b ethrex_support https://github.com/lambdaclass/sdk-core
+```
+
+```shell
+cd sdk-core
+```
+
+Update `src/addresses.ts` from lines 69..77 with the deployed uniswap v3 contracts, also update line 183 with the swapRouter02 address and weth9 address on `src/entities/weth9.ts` if needed
+
+```shell
+yarn install
+```
+
+```shell
+yarn build
+```
+
+#### Smart order router
+
+```shell
+git clone -b ethrex_support https://github.com/lambdaclass/smart-order-router
+```
+
+```shell
+cd smart-order-router
+```
+
+Update WETH9 address in `src/util/chains.ts` and `src/providers/token-provider.ts` if neededs
+
+```shell
+npm install
+```
+
+```shell
+npm run build
+```
+
+#### Permit2
+
+```shell
+git clone https://github.com/Uniswap/permit2
+```
+
+Follow the instructions to deploy the permit2 contract to `0x000000000022D473030F116dDEE9F6B43aC78BA3`
+
+#### Universal router
+
+```shell
+git clone -b ethrex_support --recurse-submodules https://github.com/lambdaclass/universal-router
+```
+
+Follow the instructions from the readme to deploy the universal router contract to the L2 using the script `DeployEthrexDev.s.sol` you might need to update weth9 and factoryV3 addresses
+
+#### Universal router sdk
+
+```shell
+git clone -b ethrex_support https://github.com/lambdaclass/universal-router-sdk
+```
+
+```shell
+cd universal-router-sdk
+```
+
+Update the router constant at `src/utils/constants.ts` with the new router address
+
+```shell
+yarn install
+```
+
+```shell
+yarn build
+```
+
+#### Interface
+
+### Deploy the uniswap api
+
+1. Clone the repo
+
+```shell
+git clone -b ethrex_support https://github.com/lambdaclass/routing-api && cd routing-api
+```
+
+2. Install the dependencies
+
+```shell
+npm install
+```
+
+3. Start the API
+
+```shell
+npm run sls:dev
+```
+
+### Deploy the interface
+
+1. Clone the repo
+```shell
+git clone -b ethrex_support https://github.com/lambdaclass/uniswap-interface && cd uniswap-interface
+```
+
+You might need to update the weth9 address in `apps/web/src/constants/tokens.ts`
+
+2. Install the dependencies
+
+```shell
+yarn install
+```
+
+3. Start the local server
+
+```shell
+yarn web start
+```
+
+### Perform a swap
+
+1. Perform the swap using the uniswap interface
