@@ -53,13 +53,13 @@ Follow instructions in examples/uniswap/README.md
 
 ## 📚 Resources
 
-TODO
+- [Uniswap V3](https://docs.uniswap.org/contracts/v3/overview)
 - [ethrex documentation](https://github.com/lambdaclass/ethrex/tree/main/docs)
 - [WETH9 Deployment Guide](docs/deployer.md)
 - [Uniswap Integration Example](examples/uniswap/README.md)
 
 ## 🔧 Prerequisites
 
-- Rust toolchain (latest stable)
+- Rust toolchain
 - Solidity compiler (solc)
 - Access to an ethrex L2 node
