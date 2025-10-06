@@ -2,6 +2,12 @@
 
 A collection of smart contracts and deployment tools for ethrex L2 networks, including WETH9 implementation and DeFi integration examples.
 
+## Prerequisites
+
+- Rust toolchain
+- Solidity compiler (solc)
+- Access to an ethrex L2 node
+
 ## Project Structure
 
 ### Core Contracts (`/contracts`)
@@ -21,7 +27,7 @@ Rust-based tooling for contract compilation and deployment:
 **Usage:**
 ```bash
 cd scripts/
-cargo run --bin deployer -- --rpc-url <RPC> --private-key <KEY> --l1-token <ADDR> --salt <SALT>
+cargo run --release -- --rpc-url <RPC> --private-key <KEY> --l1-token <ADDR> --salt <SALT>
 ```
 
 See [`docs/deployer.md`](docs/deployer.md) for detailed deployment instructions.
@@ -49,15 +55,9 @@ Follow instructions in [examples/uniswap](examples/uniswap)
   - Step-by-step deployment instructions
   - Usage examples and troubleshooting
 
-## 📚 Resources
+## Resources
 
-- [Uniswap V3](https://docs.uniswap.org/contracts/v3/overview)
 - [ethrex documentation](https://github.com/lambdaclass/ethrex/tree/main/docs)
-- [WETH9 Deployment Guide](docs/deployer.md)
-- [Uniswap Integration Example](examples/uniswap/README.md)
+- [Uniswap V3](https://docs.uniswap.org/contracts/v3/overview)
 
-## 🔧 Prerequisites
 
-- Rust toolchain
-- Solidity compiler (solc)
-- Access to an ethrex L2 node
