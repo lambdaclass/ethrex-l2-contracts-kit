@@ -39,9 +39,7 @@ Complete example showing how to:
 - Provide liquidity
 
 
-**Running examples:**
-
-Follow instructions in examples/uniswap/README.md
+Follow instructions in [examples/uniswap](examples/uniswap)
 
 ### Documentation (`/docs`)
 
