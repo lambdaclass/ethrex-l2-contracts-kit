@@ -34,7 +34,7 @@ cd scripts
 To deploy the WETH contract for the L2 using a deterministic address, run:
 
 ```shell
-cargo run --bin deployer -- \
+cargo run --release -- \
   --rpc-url <L2_RPC_URL> \
   --private-key <PRIVATE_KEY> \
   --l1-token <L1_WETH_ADDRESS> \
