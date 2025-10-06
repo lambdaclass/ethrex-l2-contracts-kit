@@ -30,7 +30,7 @@ See [`docs/deployer.md`](docs/deployer.md) for detailed deployment instructions.
 
 Self-contained example projects demonstrating contract usage:
 
-#### Uniswap V3 Integration (`/examples/uniswap`)
+#### Uniswap V3 Integration
 
 Complete example showing how to:
 - Deploy ERC-20 test tokens
