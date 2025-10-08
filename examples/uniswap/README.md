@@ -50,7 +50,7 @@ rex call $WETH_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a
 
 1. Deploy TEST contract
 
-We will deploy test token, using the deterministic deployer contract located at address `0x4e59b44847b379578588920ca78fbf26c0b4956c`. You can get the bytecode for the TEST token from `contracts/ERC20/ERC20.bin/TestToken.bin`. The bytecode should replace <REST_OF_THE_CODE> in the command
+We will deploy test token, using the deterministic deployer contract located at address `0x4e59b44847b379578588920ca78fbf26c0b4956c`. You can get the bytecode for the TEST token from `fixtures/contracts/ERC20/TestToken.bin`. The bytecode should replace <REST_OF_THE_CODE> in the command
 
 ```shell
 rex send 0x4e59b44847b379578588920ca78fbf26c0b4956c --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --rpc-url http://localhost:1729 --calldata 0x0000000000000000000000000000000000000000000000000000000000000000<REST_OF_THE_CODE>
