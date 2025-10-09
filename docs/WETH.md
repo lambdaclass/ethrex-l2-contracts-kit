@@ -23,22 +23,25 @@ To avoid this, any transfer of WETH across layers must first be unwrapped to ETH
 That ETH is then locked and represented appropriately on the destination chain, where it can be wrapped again if needed.  
 This flow preserves the full 1:1 backing of WETH while allowing safe movement of value between layers.
 
-## Running the script
+## Deployment
 
-From the project root, navigate to the `scripts` directory:
+Install rex:
 
 ```shell
-cd scripts
+git clone https://github.com/lambdaclass/rex.git
+cd rex
+make cli
 ```
 
-To deploy the WETH contract for the L2 using a deterministic address, run:
+Deploy:
 
 ```shell
-cargo run --release -- \
+rex deploy 0 <PRIVATE_KEY> \
   --rpc-url <L2_RPC_URL> \
-  --private-key <PRIVATE_KEY> \
-  --l1-token <L1_WETH_ADDRESS> \
-  --salt <SALT>
+  --contract-path contracts/WETH9.sol \ 
+  --remappings "@openzeppelin/contracts=https://github.com/OpenZeppelin/openzeppelin-contracts.git" \
+  --salt <SALT> \
+  -- "constructor(address)" <L1_WETH_ADDRESS>
 ```
 
 ## Basic usage
