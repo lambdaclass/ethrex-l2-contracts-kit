@@ -243,7 +243,7 @@ solc \
 3. Deploy the contract
 
 ```shell
-rex deploy 0 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --rpc-url http://localhost:1729 --bytecode  <CONTRACT-BYTECODE>
+rex deploy 0 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --rpc-url http://localhost:1729 --bytecode <CONTRACT-BYTECODE>
 ```
 
 Copy the bytecode from `contracts/swap/solc_out/Swap.bin` rex will return the contract address for example:
@@ -370,7 +370,7 @@ git clone -b ethrex_support https://github.com/lambdaclass/universal-router-sdk
 cd universal-router-sdk
 ```
 
-Update the router constant at `src/utils/constants.ts` with the new router address
+Update the router constant at `src/utils/constants.ts` with the new router address. Here is needed node <= 18
 
 ```shell
 yarn install
@@ -425,4 +425,4 @@ yarn web start
 
 ### Perform a swap
 
-1. Perform the swap using the uniswap interface
+1. Perform the swap using the uniswap interface. Look for http://localhost:3000
