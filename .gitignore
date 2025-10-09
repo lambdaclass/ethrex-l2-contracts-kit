@@ -1,0 +1,6 @@
+**/.vscode
+**/target
+**/out
+**/solc_out
+scripts/lib
+examples/uniswap/contracts/swap/deps/*
