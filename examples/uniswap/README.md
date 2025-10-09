@@ -10,28 +10,10 @@
 
 ### Deploy WETH9 contract on L2
 
-1. Deploy the contract
-On the root of the repo
+1. Export the L2 WETH address for easier handling
 
 ```shell
-cd scripts
-```
-
-```shell
-cargo run --bin deployer -- --rpc-url http://localhost:1729 --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --l1-token 0x0000000000000000000000000000000000000000 --salt 0x0000000000000000000000000000000000000000000000000000000000000000
-```
-
-This should deploy WETH9 and show a message with the address:
-
-```
-deployed with tx hash 0xe793d192165eee21c63c10a8b8669ee409a780417e2b07d4bae37404412c9704
-deployed at address 0x36ccfc7163a2c2cdf7a6d6da202eb9c7aa18e4ea
-```
-
-We'll put the address in an ENV_VAR to use in the next commands
-
-```shell
-export WETH_ADDRESS=0x36ccfc7163a2c2cdf7a6d6da202eb9c7aa18e4ea
+export WETH_ADDRESS=0x000000000000000000000000000000000000fffd
 ```
 
 2. Send some eth to the contract to mint some WETH
@@ -177,28 +159,14 @@ make deps
 
 On the `LiquidityProvider.sol` file check that the address on line 13 is the same that the output from the [uniswap deployment](#deploy-uniswap-contracts) step and that the WETH9 address is the same as in [weth deployment](#deploy-weth9-contract-on-l2)
 
-3. Compile the contract
+3. Deploy the contract
 
 ```shell
-solc \
-  --optimize \
-  --bin \
-  --overwrite \
-  --output-dir solc_out \
-  @openzeppelin/=deps/openzeppelin-contracts/ \
-  @uniswap/=deps/ \
-  @openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol=deps/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol \
-  @openzeppelin/contracts/token/ERC721/IERC721Metadata.sol=deps/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Metadata.sol \
-  LiquidityProvider.sol
+rex deploy 0 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 \
+  --rpc-url http://localhost:1729 \
+  --contract-path LiquidityProvider.sol \
+  --remappings "@openzeppelin/=deps/openzeppelin-contracts/,@uniswap/=deps/,@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol=deps/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol,@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol=deps/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Metadata.sol"
 ```
-
-4. Deploy the contract
-
-```shell
-rex deploy <CONTRACT-BYTECODE> 0 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --rpc-url http://localhost:1729
-```
-
-Copy the bytecode from `contracts/swap/solc_out/LiquidityProvider.bin` rex will return the contract address for example:
 
 ```
 Contract deployed in tx: 0xb42ecc29fa4c1844db0257687bdce5521556e3e7a0fd25c7fca8a96479d9557e
@@ -243,28 +211,14 @@ rex call $LIQUIDITY_POOL_ADDRESS "liquidity()" --rpc-url http://localhost:1729
 
 On the `Swap.sol` file check that the address on line 7 is the same that the output from the [uniswap deployment](#deploy-uniswap-contracts) step. Also the WETH9 address should match your WETH deployment.
 
-2. Compile the contract
+2. Deploy the contract
 
 ```shell
-solc \
-  @swap-router-contracts/=deps/swap-router-contracts/ \
-  @openzeppelin/=deps/openzeppelin-contracts/ \
-  @uniswap/v3-periphery/=deps/v3-periphery/ \
-  @uniswap/v3-core/=deps/v3-core/ \
-  --optimize \
-  --bin \
-  --overwrite \
-  --output-dir solc_out \
-  Swap.sol
+rex deploy 0 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 \
+  --rpc-url http://localhost:1729 \
+  --contract-path Swap.sol \
+  --remappings "@swap-router-contracts/=deps/swap-router-contracts/,@openzeppelin/=deps/openzeppelin-contracts/,@uniswap/v3-periphery/=deps/v3-periphery/,@uniswap/v3-core/=deps/v3-core/"
 ```
-
-3. Deploy the contract
-
-```shell
-rex deploy <CONTRACT-BYTECODE> 0 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --rpc-url http://localhost:1729
-```
-
-Copy the bytecode from `contracts/swap/solc_out/Swap.bin` rex will return the contract address for example:
 
 ```
 Contract deployed in tx: 0x1f42faf95e4dce6fd57e34a07a2c2b0bbd83d153574b5a5a509f415c6825501c
@@ -388,7 +342,7 @@ git clone -b ethrex_support https://github.com/lambdaclass/universal-router-sdk
 cd universal-router-sdk
 ```
 
-Update the router constant at `src/utils/constants.ts` with the new router address
+Update the router constant at `src/utils/constants.ts` with the new router address. Here is needed node <= 18
 
 ```shell
 yarn install
@@ -443,4 +397,4 @@ yarn web start
 
 ### Perform a swap
 
-1. Perform the swap using the uniswap interface
+1. Perform the swap using the uniswap interface. Look for http://localhost:3000
