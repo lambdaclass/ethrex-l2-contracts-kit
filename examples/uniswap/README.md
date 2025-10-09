@@ -177,7 +177,7 @@ solc \
 4. Deploy the contract
 
 ```shell
-rex deploy <CONTRACT-BYTECODE> 0 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --rpc-url http://localhost:1729
+rex deploy 0 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --rpc-url http://localhost:1729 --bytecode <CONTRACT-BYTECODE>
 ```
 
 Copy the bytecode from `contracts/swap/solc_out/LiquidityProvider.bin` rex will return the contract address for example:
@@ -243,7 +243,7 @@ solc \
 3. Deploy the contract
 
 ```shell
-rex deploy <CONTRACT-BYTECODE> 0 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --rpc-url http://localhost:1729
+rex deploy 0 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --rpc-url http://localhost:1729 --bytecode  <CONTRACT-BYTECODE>
 ```
 
 Copy the bytecode from `contracts/swap/solc_out/Swap.bin` rex will return the contract address for example:
