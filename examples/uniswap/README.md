@@ -8,7 +8,7 @@
 
 ## Steps
 
-### Deploy WETH9 contract on L2
+### Get WETH on L2
 
 1. Export the L2 WETH address for easier handling
 
