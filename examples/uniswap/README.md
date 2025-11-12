@@ -4,6 +4,7 @@
 
 - [Yarn](https://yarnpkg.com/)
 - [Node](https://nodejs.org/en)
+  - We recommend using [NVM](https://www.nvmnode.com/) to manage versions as we need to use v18 and v20.
 - [Rex](https://github.com/lambdaclass/rex)
 
 ### Initial env variables
@@ -11,7 +12,8 @@
 In order for the code to be more concise and understandable we recommend these exports:
 
 RPC URL of the L2 node
-Note that the `RPC_URL` needs to have this name in order for rex to recognize it as default RPC endpoint that it's going to use.
+> [!NOTE]
+> The `RPC_URL` needs to have this name in order for rex to recognize it as default RPC endpoint that it's going to use. Otherwise it must be specified with the `--rpc-url` flag.
 ```shell
 export RPC_URL=http://localhost:1729
 ```
@@ -84,8 +86,7 @@ rex call $TEST_TOKEN_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20
 ```shell
 git clone https://github.com/lambdaclass/deploy-v3
 cd deploy-v3
-git checkout stable_deployment
-git checkout HEAD^
+git checkout 84dd40ac
 ```
 
 2. Install dependencies
@@ -97,10 +98,10 @@ git checkout HEAD^
 yarn install
 ```
 
-> [!NOTE]
-> If you already deployed the contracts once you need to run `rm state.json`
-
 3. Deploy contracts
+
+> [!NOTE]
+> If you have already deployed the contracts before you need to run `rm state.json`
 
 ```shell
 NODE_OPTIONS=--openssl-legacy-provider yarn start --private-key 0x1bc8b78019f35d4447a774e837d414a3db9e1dea5cfc4e9dc2fc3904969ab51f --weth9-address $WETH_ADDRESS --json-rpc $RPC_URL --native-currency-label "ETH" --owner-address 0x0000000000000000000000000000000000000001
@@ -129,7 +130,7 @@ cat state.json
 }
 ```
 
-We will use the v3CoreFactoryAddress, nonfungibleTokenPositionManagerAddress and swapRouter02 addresses in this example
+In this example we will use the v3CoreFactoryAddress, nonfungibleTokenPositionManagerAddress and swapRouter02 addresses.
 
 ```shell
 export FACTORY_ADDRESS=0xAF66f763079a9026bC7324B5804f28c35f921c8b
@@ -164,6 +165,7 @@ Initialize the pool with calldata for a 1WETH to 1TEST price:
 rex send $LIQUIDITY_POOL_ADDRESS --private-key $RICH_SK_L2 "initialize(uint160)" 79228162514264337593543950336
 ```
 
+> [!NOTE]
 > The calldata is `sqrtPriceX96`, which represents the square root of the price ratio of token1 to token0, multiplied by 2^96. In this case 2^96 * √1 = 2^96. For diving deeper onto this you can read [this blog post from uniswap](https://blog.uniswap.org/uniswap-v3-math-primer).
 
 ### Deploy the liquidity provider contract
