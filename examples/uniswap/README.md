@@ -42,10 +42,10 @@ export WETH_ADDRESS=0x000000000000000000000000000000000000FfFD
 2. Send some ETH to the contract to mint some WETH
 
 ```shell
-rex send $WETH_ADDRESS --private-key $RICH_SK_L2 --value 100000000000000000000000
+rex send $WETH_ADDRESS --private-key $RICH_SK_L2 --value 100000000000000000
 ```
 
-This will mint 10 WETH. You can check your new balance with:
+This will mint 1 WETH (1e18 WWEI). You can check your new balance with:
 
 ```shell
 rex call $WETH_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e
@@ -252,37 +252,56 @@ TODO: Change this for deterministic deployment.
 export SWAP_CONTRACT_ADDRESS=0xd6a0c08a76a0cde4a1582f33ac25c1e21d9d62d3
 ```
 
-### Swap TEST for WETH
+### Swap WETH for TEST and viceversa
 
-1. Transfer some TEST and ETH to an empty account
-
-```shell
-rex send --private-key $RICH_SK_L2 $TEST_TOKEN_ADDRESS "transfer(address,uint256)" 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF 1000000000000000000
-```
+1. Check WETH and TEST balances
 
 ```shell
-rex send 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF --private-key $RICH_SK_L2 --value 1000000000000000000
+rex call $WETH_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e
+rex call $TEST_TOKEN_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e
 ```
 
-2. Approve the swap contract to spend TEST tokens
+2. Approve the swap contract to spend WETH tokens
 
 ```shell
-rex send $TEST_TOKEN_ADDRESS --private-key 0xdd5fcfb45b5702ba0b5c326d0fa29b28dfe4854e3fbd4e104bfae90cefe7732e "approve(address, uint256)" $SWAP_CONTRACT_ADDRESS 10000000000000000000
+rex send $WETH_ADDRESS --private-key $RICH_SK_L2 "approve(address, uint256)" $SWAP_CONTRACT_ADDRESS 1000000000000000000
 ```
 
-3. Swap TEST for WETH
+3. Swap 1 WETH for TEST
 
 ```shell
-rex send $SWAP_CONTRACT_ADDRESS  --private-key 0xdd5fcfb45b5702ba0b5c326d0fa29b28dfe4854e3fbd4e104bfae90cefe7732e "swapTestForWeth(uint256)" 1000000000000000000
+rex send $SWAP_CONTRACT_ADDRESS --private-key $RICH_SK_L2 "swapWethForTest(uint256)" 1000000000000000000
 ```
 
-4. Check WETH balance
+3. Check once again TEST and WETH balances
 
 ```shell
-rex call $WETH_ADDRESS "balanceOf(address)" 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF
+rex call $WETH_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e
+rex call $TEST_TOKEN_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e
 ```
 
-You should have close to 1WETH minus the 0.3% fee.
+You should have close to 1 TEST more minus the 0.3% fee, and zero WETH if you only had 1 before the swap.
+
+4. Approve the swap contract to spend TEST tokens
+
+```shell
+rex send $TEST_TOKEN_ADDRESS --private-key $RICH_SK_L2 "approve(address, uint256)" $SWAP_CONTRACT_ADDRESS 1000000000000000000
+```
+
+5. Swap TEST for WETH
+
+```shell
+rex send $SWAP_CONTRACT_ADDRESS --private-key $RICH_SK_L2 "swapTestForWeth(uint256)" 1000000000000000000
+```
+
+6. Check balances one last time
+
+```shell
+rex call $WETH_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e
+rex call $TEST_TOKEN_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e
+```
+
+You should now have fewer tokens than what you had before the swap because of the 0.3% fee.
 
 # Use the uniswap interface
 
