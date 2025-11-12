@@ -7,7 +7,9 @@
   - We recommend using [NVM](https://www.nvmnode.com/) to manage versions as we need to use v18 and v20.
 - [Rex](https://github.com/lambdaclass/rex)
 
-### Initial env variables
+## Steps
+
+### Set Initial Environment Variables
 
 In order for the code to be more concise and understandable we recommend these exports:
 
@@ -22,8 +24,6 @@ Private Key of a Rich Account in L2 (account with high balance)
 ```shell
 export RICH_SK_L2=0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057
 ```
-
-## Steps
 
 ### Get WETH on L2
 
