@@ -6,6 +6,21 @@
 - [Node](https://nodejs.org/en)
 - [Rex](https://github.com/lambdaclass/rex)
 
+### Initial env variables
+
+In order for the code to be more concise and understandable we recommend these exports:
+
+RPC URL of the L2 node
+Note that the `RPC_URL` needs to have this name in order for rex to recognize it as default RPC endpoint that it's going to use.
+```shell
+export RPC_URL=http://localhost:1729
+```
+
+Private Key of a Rich Account in L2 (account with high balance)
+```shell
+export RICH_SK_L2=0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057
+```
+
 ## Steps
 
 ### Get WETH on L2
@@ -13,49 +28,54 @@
 1. Export the L2 WETH address for easier handling
 
 ```shell
-export WETH_ADDRESS=0x000000000000000000000000000000000000fffd
+export WETH_ADDRESS=0x000000000000000000000000000000000000FfFD
 ```
 
 2. Send some eth to the contract to mint some WETH
 
 ```shell
-rex send --rpc-url http://localhost:1729 $WETH_ADDRESS --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --value 100000000000000000000000
+rex send $WETH_ADDRESS --private-key $RICH_SK_L2 --value 100000000000000000000000
 ```
 
-This will mint 10WETH you can check your new balance with:
+This will mint 10WETH. You can check your new balance with:
 
 ```shell
-rex call $WETH_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e --rpc-url http://localhost:1729
+rex call $WETH_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e
 ```
 
 ### Deploy TEST token on L2
 
 1. Deploy TEST contract
 
-We will deploy test token, using the deterministic deployer contract located at address `0x4e59b44847b379578588920ca78fbf26c0b4956c`. You can get the bytecode for the TEST token from `fixtures/contracts/ERC20/TestToken.bin`. The bytecode should replace <REST_OF_THE_CODE> in the command
+We will deploy test token, using the deterministic deployer contract located at address `0x4e59b44847b379578588920ca78fbf26c0b4956c`. You can get the bytecode of the TEST token from `fixtures/contracts/ERC20/TestToken.bin`. The bytecode should replace <REST_OF_THE_CODE> in the command
 
 ```shell
-rex send 0x4e59b44847b379578588920ca78fbf26c0b4956c --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --rpc-url http://localhost:1729 --calldata 0x0000000000000000000000000000000000000000000000000000000000000000<REST_OF_THE_CODE>
+rex send 0x4e59b44847b379578588920ca78fbf26c0b4956c --private-key $RICH_SK_L2 --calldata 0x0000000000000000000000000000000000000000000000000000000000000000<REST_OF_THE_CODE>
 ```
 
-This should deploy TEST token contract to 0xB66dd10F098f62141A536e92f6e8f7f9633893E2. You can check this by calling:
+This should deploy TEST token contract to `0xB66dd10F098f62141A536e92f6e8f7f9633893E2`. You can check this by calling:
 
 ```shell
 rex code 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 http://localhost:1729
 ```
 
-2. Mint some free tokens to your account
+For easier handling run:
 
 ```shell
-rex send 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "freeMint()" --rpc-url http://localhost:1729
+export TEST_TOKEN_ADDRESS=0xB66dd10F098f62141A536e92f6e8f7f9633893E2
+```
+
+2. Mint some free Test tokens to your account
+
+```shell
+rex send $TEST_TOKEN_ADDRESS --private-key $RICH_SK_L2 "freeMint()"
 ```
 
 You can check your new balance with:
 
 ```shell
-rex call 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e --rpc-url http://localhost:1729
+rex call $TEST_TOKEN_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e
 ```
-
 
 ### Deploy uniswap contracts
 
@@ -83,7 +103,7 @@ yarn install
 3. Deploy contracts
 
 ```shell
-NODE_OPTIONS=--openssl-legacy-provider yarn start --private-key 0x1bc8b78019f35d4447a774e837d414a3db9e1dea5cfc4e9dc2fc3904969ab51f --weth9-address $WETH_ADDRESS --json-rpc http://localhost:1729 --native-currency-label "ETH" --owner-address 0x0000000000000000000000000000000000000001
+NODE_OPTIONS=--openssl-legacy-provider yarn start --private-key 0x1bc8b78019f35d4447a774e837d414a3db9e1dea5cfc4e9dc2fc3904969ab51f --weth9-address $WETH_ADDRESS --json-rpc $RPC_URL --native-currency-label "ETH" --owner-address 0x0000000000000000000000000000000000000001
 ```
 
 4. List the deployed contracts, yours could be different:
@@ -117,20 +137,20 @@ export FACTORY_ADDRESS=0xAF66f763079a9026bC7324B5804f28c35f921c8b
 
 ### Create a liquidity pool
 
-Next we will create a liquidity pool for the WETH/TEST swap with a 0.3% fee tier:
-create the pool with:
+Next we will create a liquidity pool for the WETH/TEST swap with a 0.3% fee tier.
 
+Create the pool with
 ```shell
-rex send --rpc-url http://localhost:1729 $FACTORY_ADDRESS --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "createPool(address,address,uint24)" $WETH_ADDRESS 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 3000
+rex send $FACTORY_ADDRESS --private-key $RICH_SK_L2 "createPool(address,address,uint24)" $WETH_ADDRESS $TEST_TOKEN_ADDRESS 3000
 ```
 
-You can check the pool exists calling the uniswap factory contract:
+You can check the pool exists by calling the uniswap Factory Contract:
 
 ```shell
-rex call $FACTORY_ADDRESS "getPool(address,address,uint24)" 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 $WETH_ADDRESS 3000 --rpc-url http://localhost:1729
+rex call $FACTORY_ADDRESS "getPool(address,address,uint24)" $TEST_TOKEN_ADDRESS $WETH_ADDRESS 3000
 ```
 
-This will return the pool address We'll put the address in an ENV_VAR to use in the next commands.
+This will return the pool address. We'll save it as an environment variable to use it in the following commands.
 
 ```shell
 export LIQUIDITY_POOL_ADDRESS=0x54af7e84298e1f9e5c4065c14a5848e5f94efec3
@@ -138,11 +158,13 @@ export LIQUIDITY_POOL_ADDRESS=0x54af7e84298e1f9e5c4065c14a5848e5f94efec3
 
 ### Initialize the liquidity pool
 
-initialize the pool with calldata for a 1WETH to 1TEST price:
+Initialize the pool with calldata for a 1WETH to 1TEST price:
 
 ```shell
-rex send --rpc-url http://localhost:1729 $LIQUIDITY_POOL_ADDRESS --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "initialize(uint160)" 79228162514264337593543950336
+rex send $LIQUIDITY_POOL_ADDRESS --private-key $RICH_SK_L2 "initialize(uint160)" 79228162514264337593543950336
 ```
+
+> The calldata is `sqrtPriceX96`, which represents the square root of the price ratio of token1 to token0, multiplied by 2^96. In this case 2^96 * √1 = 2^96. For diving deeper onto this you can read [this blog post from uniswap](https://blog.uniswap.org/uniswap-v3-math-primer).
 
 ### Deploy the liquidity provider contract
 
@@ -162,8 +184,7 @@ On the `LiquidityProvider.sol` file check that the address on line 13 is the sam
 3. Deploy the contract
 
 ```shell
-rex deploy 0 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 \
-  --rpc-url http://localhost:1729 \
+rex deploy 0 $RICH_SK_L2 \
   --contract-path LiquidityProvider.sol \
   --remappings "@openzeppelin/=deps/openzeppelin-contracts/,@uniswap/=deps/,@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol=deps/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol,@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol=deps/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Metadata.sol"
 ```
@@ -184,25 +205,25 @@ export LIQUIDITY_PROVIDER_ADDRESS=0x4b8d115d560c7c4988d2b8b84f411406574442ce
 1. Authorize the Liquidity provider contract to spend your WETH tokens
 
 ```shell
-rex send --rpc-url http://localhost:1729 $WETH_ADDRESS --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "approve(address, uint256)" $LIQUIDITY_PROVIDER_ADDRESS 1000000000000000000000000000000
+rex send $WETH_ADDRESS --private-key $RICH_SK_L2 "approve(address, uint256)" $LIQUIDITY_PROVIDER_ADDRESS 1000000000000000000000000000000
 ```
 
 2. Authorize the Liquidity provider contract to spend your TEST tokens
 
 ```shell
-rex send --rpc-url http://localhost:1729 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "approve(address, uint256)" $LIQUIDITY_PROVIDER_ADDRESS 1000000000000000000000000000000
+rex send $TEST_TOKEN_ADDRESS --private-key $RICH_SK_L2 "approve(address, uint256)" $LIQUIDITY_PROVIDER_ADDRESS 1000000000000000000000000000000
 ```
 
 3. Mint a new position
 
 ```shell
-rex send --rpc-url http://localhost:1729 $LIQUIDITY_PROVIDER_ADDRESS --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 "mint()"
+rex send $LIQUIDITY_PROVIDER_ADDRESS --private-key $RICH_SK_L2 "mint()"
 ```
 
 4. Check the liquidity of the pool
 
 ```shell
-rex call $LIQUIDITY_POOL_ADDRESS "liquidity()" --rpc-url http://localhost:1729
+rex call $LIQUIDITY_POOL_ADDRESS "liquidity()"
 ```
 
 ### Deploy swap contract
@@ -214,8 +235,7 @@ On the `Swap.sol` file check that the address on line 7 is the same that the out
 2. Deploy the contract
 
 ```shell
-rex deploy 0 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 \
-  --rpc-url http://localhost:1729 \
+rex deploy 0 $RICH_SK_L2 \
   --contract-path Swap.sol \
   --remappings "@swap-router-contracts/=deps/swap-router-contracts/,@openzeppelin/=deps/openzeppelin-contracts/,@uniswap/v3-periphery/=deps/v3-periphery/,@uniswap/v3-core/=deps/v3-core/"
 ```
@@ -236,29 +256,29 @@ export SWAP_CONTRACT_ADDRESS=0xd6a0c08a76a0cde4a1582f33ac25c1e21d9d62d3
 1. Transfer some TEST and ETH to an empty account
 
 ```shell
-rex send --rpc-url http://localhost:1729 --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057  0xB66dd10F098f62141A536e92f6e8f7f9633893E2 "transfer(address,uint256)" 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF 1000000000000000000
+rex send --private-key $RICH_SK_L2  $TEST_TOKEN_ADDRESS "transfer(address,uint256)" 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF 1000000000000000000
 ```
 
 ```shell
-rex send --rpc-url http://localhost:1729 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF --private-key 0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057 --value 1000000000000000000
+rex send 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF --private-key $RICH_SK_L2 --value 1000000000000000000
 ```
 
 2. Approve the swap contract to spend TEST tokens
 
 ```shell
-rex send --rpc-url http://localhost:1729 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 --private-key 0xdd5fcfb45b5702ba0b5c326d0fa29b28dfe4854e3fbd4e104bfae90cefe7732e "approve(address, uint256)" $SWAP_CONTRACT_ADDRESS 10000000000000000000
+rex send $TEST_TOKEN_ADDRESS --private-key 0xdd5fcfb45b5702ba0b5c326d0fa29b28dfe4854e3fbd4e104bfae90cefe7732e "approve(address, uint256)" $SWAP_CONTRACT_ADDRESS 10000000000000000000
 ```
 
 3. Swap TEST for WETH
 
 ```shell
-rex send --rpc-url http://localhost:1729 $SWAP_CONTRACT_ADDRESS  --private-key 0xdd5fcfb45b5702ba0b5c326d0fa29b28dfe4854e3fbd4e104bfae90cefe7732e "swapTestForWeth(uint256)" 1000000000000000000
+rex send $SWAP_CONTRACT_ADDRESS  --private-key 0xdd5fcfb45b5702ba0b5c326d0fa29b28dfe4854e3fbd4e104bfae90cefe7732e "swapTestForWeth(uint256)" 1000000000000000000
 ```
 
 4. Check WETH balance
 
 ```shell
-rex call $WETH_ADDRESS "balanceOf(address)" 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF --rpc-url http://localhost:1729
+rex call $WETH_ADDRESS "balanceOf(address)" 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF
 ```
 
 You should have close to 1WETH minus the 0.3% fee.
