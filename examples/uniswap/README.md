@@ -56,7 +56,7 @@ rex send 0x4e59b44847b379578588920ca78fbf26c0b4956c --private-key $RICH_SK_L2 --
 This should deploy TEST token contract to `0xB66dd10F098f62141A536e92f6e8f7f9633893E2`. You can check this by calling:
 
 ```shell
-rex code 0xB66dd10F098f62141A536e92f6e8f7f9633893E2 http://localhost:1729
+rex code 0xB66dd10F098f62141A536e92f6e8f7f9633893E2
 ```
 
 For easier handling run:
