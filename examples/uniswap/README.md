@@ -179,11 +179,10 @@ cd examples/uniswap/contracts/swap
 make deps
 ```
 
-2. Check nonfungibleTokenPositionManagerAddress address
+2. Deploy the contract
 
-On the `LiquidityProvider.sol` file check that the address on line 13 is the same that the output from the [uniswap deployment](#deploy-uniswap-contracts) step and that the WETH9 address is the same as in [weth deployment](#deploy-weth9-contract-on-l2)
-
-3. Deploy the contract
+> [!NOTE]
+> If for some reason the addresses of the deployed contracts differ from the ones shown in this guide change them in the `LiquidityProvider.sol` file.
 
 ```shell
 rex deploy 0 $RICH_SK_L2 \
@@ -230,11 +229,8 @@ rex call $LIQUIDITY_POOL_ADDRESS "liquidity()"
 
 ### Deploy swap contract
 
-1. Check swapRouter02 address
-
-On the `Swap.sol` file check that the address on line 7 is the same that the output from the [uniswap deployment](#deploy-uniswap-contracts) step. Also the WETH9 address should match your WETH deployment.
-
-2. Deploy the contract
+> [!NOTE]
+> If for some reason the addresses of the deployed contracts differ from the ones shown in this guide change them in the `Swap.sol` file.
 
 ```shell
 rex deploy 0 $RICH_SK_L2 \
@@ -258,7 +254,7 @@ export SWAP_CONTRACT_ADDRESS=0xd6a0c08a76a0cde4a1582f33ac25c1e21d9d62d3
 1. Transfer some TEST and ETH to an empty account
 
 ```shell
-rex send --private-key $RICH_SK_L2  $TEST_TOKEN_ADDRESS "transfer(address,uint256)" 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF 1000000000000000000
+rex send --private-key $RICH_SK_L2 $TEST_TOKEN_ADDRESS "transfer(address,uint256)" 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF 1000000000000000000
 ```
 
 ```shell
@@ -292,7 +288,7 @@ You should have close to 1WETH minus the 0.3% fee.
 - [Yarn](https://yarnpkg.com/)
 - [Node](https://nodejs.org/en)
 - [Rex](https://github.com/lambdaclass/rex)
-- Follow the instructions from [Swap tokens with Uniswap v3 on ethrex L2](#swap-tokens-with-uniswap-v3-on-ethrex-l2) up to [Add liquidity to the pool](#add-liquidity-to-the-pool-by-minting-a-new-position)
+- Follow the instructions from [Swap tokens with Uniswap v3 on ethrex L2](#swap-tokens-with-uniswap-v3-on-ethrex-l2) at least up to [Add liquidity to the pool](#add-liquidity-to-the-pool-by-minting-a-new-position)
 
 ## Steps
 
