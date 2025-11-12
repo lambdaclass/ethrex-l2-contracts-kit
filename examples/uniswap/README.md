@@ -13,14 +13,15 @@
 
 In order for the code to be more concise and understandable we recommend these exports:
 
-RPC URL of the L2 node
-> [!NOTE]
-> The `RPC_URL` needs to have this name in order for rex to recognize it as default RPC endpoint that it's going to use. Otherwise it must be specified with the `--rpc-url` flag.
+RPC URL of the L2 node:
 ```shell
 export RPC_URL=http://localhost:1729
 ```
+> [!NOTE]
+> The `RPC_URL` needs to have this name in order for rex to recognize it as default RPC endpoint that it's going to use. Otherwise it must be specified with the `--rpc-url` flag.
 
-Private Key of a Rich Account in L2 (account with high balance)
+
+Private Key of a Rich Account in L2 (account with high balance):
 ```shell
 export RICH_SK_L2=0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057
 ```
@@ -33,13 +34,13 @@ export RICH_SK_L2=0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f2
 export WETH_ADDRESS=0x000000000000000000000000000000000000FfFD
 ```
 
-2. Send some eth to the contract to mint some WETH
+2. Send some ETH to the contract to mint some WETH
 
 ```shell
 rex send $WETH_ADDRESS --private-key $RICH_SK_L2 --value 100000000000000000000000
 ```
 
-This will mint 10WETH. You can check your new balance with:
+This will mint 10 WETH. You can check your new balance with:
 
 ```shell
 rex call $WETH_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e
