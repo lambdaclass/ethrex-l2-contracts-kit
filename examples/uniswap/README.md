@@ -26,6 +26,11 @@ Private Key of a Rich Account in L2 (account with high balance):
 export RICH_SK_L2=0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057
 ```
 
+Contract for deterministic deployments
+```shell
+export DETERMINISTIC_DEPLOYER=0x4e59b44847b379578588920ca78fbf26c0b4956c
+```
+
 ### Get WETH on L2
 
 1. Export the L2 WETH address for easier handling
@@ -50,25 +55,25 @@ rex call $WETH_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a
 
 1. Deploy TEST contract
 
-We will deploy test token, using the deterministic deployer contract located at address `0x4e59b44847b379578588920ca78fbf26c0b4956c`. You can get the bytecode of the TEST token from `fixtures/contracts/ERC20/TestToken.bin`. The bytecode should replace <REST_OF_THE_CODE> in the command
+We will deploy TEST token, using the deterministic deployer contract that we set up as an env variable at the beginning of the guide. You can get the bytecode of the TEST token from `fixtures/contracts/ERC20/TestToken.bin`. Replace <REST_OF_THE_CODE> with the bytecode in the following command.
 
 ```shell
-rex send 0x4e59b44847b379578588920ca78fbf26c0b4956c --private-key $RICH_SK_L2 --calldata 0x0000000000000000000000000000000000000000000000000000000000000000<REST_OF_THE_CODE>
+rex send $DETERMINISTIC_DEPLOYER --private-key $RICH_SK_L2 --calldata 0x0000000000000000000000000000000000000000000000000000000000000000<REST_OF_THE_CODE>
 ```
 
-This should deploy TEST token contract to `0xB66dd10F098f62141A536e92f6e8f7f9633893E2`. You can check this by calling:
+This should deploy TEST token contract to `0xB66dd10F098f62141A536e92f6e8f7f9633893E2`. You can check this with:
 
 ```shell
 rex code 0xB66dd10F098f62141A536e92f6e8f7f9633893E2
 ```
 
-For easier handling run:
+We'll set it as an env variable
 
 ```shell
 export TEST_TOKEN_ADDRESS=0xB66dd10F098f62141A536e92f6e8f7f9633893E2
 ```
 
-2. Mint some free Test tokens to your account
+2. Mint some free TEST tokens to your account
 
 ```shell
 rex send $TEST_TOKEN_ADDRESS --private-key $RICH_SK_L2 "freeMint()"
@@ -108,11 +113,13 @@ yarn install
 NODE_OPTIONS=--openssl-legacy-provider yarn start --private-key 0x1bc8b78019f35d4447a774e837d414a3db9e1dea5cfc4e9dc2fc3904969ab51f --weth9-address $WETH_ADDRESS --json-rpc $RPC_URL --native-currency-label "ETH" --owner-address 0x0000000000000000000000000000000000000001
 ```
 
-4. List the deployed contracts, yours could be different:
+4. List the deployed contracts
 
 ```shell
 cat state.json
 ```
+
+Ideally they should be the same as this ones, this will happen if the private key used for the deployment hadn't been previously used to send a transaction in the past. If in your case the addresses differ make sure to set the environment variables correctly and in some files of the guide (that will be mentioned) some changes will be required.
 
 ```json
 {
@@ -167,7 +174,7 @@ rex send $LIQUIDITY_POOL_ADDRESS --private-key $RICH_SK_L2 "initialize(uint160)"
 ```
 
 > [!NOTE]
-> The calldata is `sqrtPriceX96`, which represents the square root of the price ratio of token1 to token0, multiplied by 2^96. In this case 2^96 * √1 = 2^96. For diving deeper onto this you can read [this blog post from uniswap](https://blog.uniswap.org/uniswap-v3-math-primer).
+> The calldata is `sqrtPriceX96`, which represents the square root of the price ratio of token1 to token0, multiplied by 2^96. In this case `2^96 * √1 = 2^96`. For diving deeper onto this you can read [this blog post from uniswap](https://blog.uniswap.org/uniswap-v3-math-primer).
 
 ### Deploy the liquidity provider contract
 
@@ -183,20 +190,17 @@ make deps
 2. Deploy the contract
 
 > [!NOTE]
-> If for some reason the addresses of the deployed contracts differ from the ones shown in this guide change them in the `LiquidityProvider.sol` file.
+> If the addresses of the deployed contracts differ from the ones shown in this guide change them in the `LiquidityProvider.sol` file.
+> This applies to WETH, TEST_TOKEN and NFT Position Manager.
+
+TODO: Change this for deterministic deployment.
 
 ```shell
 rex deploy 0 $RICH_SK_L2 \
   --contract-path LiquidityProvider.sol \
   --remappings "@openzeppelin/=deps/openzeppelin-contracts/,@uniswap/=deps/,@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol=deps/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol,@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol=deps/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Metadata.sol"
 ```
-
-```
-Contract deployed in tx: 0xb42ecc29fa4c1844db0257687bdce5521556e3e7a0fd25c7fca8a96479d9557e
-Contract address: 0x4b8d115d560c7c4988d2b8b84f411406574442ce
-```
-
-But yours could be different. We'll put the address in an ENV_VAR to use in the next commands
+This will output the address of the created contract, yours could be different. We'll put it in an environment variable.
 
 ```shell
 export LIQUIDITY_PROVIDER_ADDRESS=0x4b8d115d560c7c4988d2b8b84f411406574442ce
@@ -231,7 +235,8 @@ rex call $LIQUIDITY_POOL_ADDRESS "liquidity()"
 ### Deploy swap contract
 
 > [!NOTE]
-> If for some reason the addresses of the deployed contracts differ from the ones shown in this guide change them in the `Swap.sol` file.
+> If the addresses of the deployed contracts differ from the ones shown in this guide change them in the `Swap.sol` file.
+> This applies to WETH, TEST_TOKEN and the Swap Router.
 
 ```shell
 rex deploy 0 $RICH_SK_L2 \
@@ -239,12 +244,9 @@ rex deploy 0 $RICH_SK_L2 \
   --remappings "@swap-router-contracts/=deps/swap-router-contracts/,@openzeppelin/=deps/openzeppelin-contracts/,@uniswap/v3-periphery/=deps/v3-periphery/,@uniswap/v3-core/=deps/v3-core/"
 ```
 
-```
-Contract deployed in tx: 0x1f42faf95e4dce6fd57e34a07a2c2b0bbd83d153574b5a5a509f415c6825501c
-Contract address: 0xd6a0c08a76a0cde4a1582f33ac25c1e21d9d62d3
-```
-
-But yours could be different. We'll put the address in an ENV_VAR to use in the next commands
+This will output the address of the Swap Contract. We'll put it in an environment variable.
+Yours could be different.
+TODO: Change this for deterministic deployment.
 
 ```shell
 export SWAP_CONTRACT_ADDRESS=0xd6a0c08a76a0cde4a1582f33ac25c1e21d9d62d3
