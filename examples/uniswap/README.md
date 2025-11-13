@@ -18,7 +18,7 @@ RPC URL of the L2 node:
 export RPC_URL=http://localhost:1729
 ```
 > [!NOTE]
-> The `RPC_URL` needs to have this name in order for rex to recognize it as default RPC endpoint that it's going to use. Otherwise it must be specified with the `--rpc-url` flag.
+> The `RPC_URL` needs to have this name in order for rex to recognize it as the default RPC endpoint that it's going to use. Otherwise it must be specified with the `--rpc-url` flag.
 
 
 Private Key of a Rich Account in L2 (account with high balance):
