@@ -161,8 +161,11 @@ rex call $FACTORY_ADDRESS "getPool(address,address,uint24)" $TEST_TOKEN_ADDRESS 
 
 This will return the pool address. We'll save it as an environment variable to use it in the following commands.
 
+> [!NOTE]
+> The output address may be different than the one used here. Make sure to use the right one for you.
+
 ```shell
-export LIQUIDITY_POOL_ADDRESS=0x54af7e84298e1f9e5c4065c14a5848e5f94efec3
+export LIQUIDITY_POOL_ADDRESS=0xae827912a586fac72b1efcde8b475a4163fd3be4
 ```
 
 ### Initialize the liquidity pool
@@ -190,10 +193,7 @@ make deps
 2. Deploy the contract
 
 > [!NOTE]
-> If the addresses of the deployed contracts differ from the ones shown in this guide change them in the `LiquidityProvider.sol` file.
-> This applies to WETH, TEST_TOKEN and NFT Position Manager.
-
-TODO: Change this for deterministic deployment.
+> If any of the addresses of WETH, TEST_TOKEN and NFT Position Manager differ from the ones shown in this guide make sure to change them in the `LiquidityProvider.sol` file.
 
 ```shell
 rex deploy 0 $RICH_SK_L2 \
@@ -203,7 +203,7 @@ rex deploy 0 $RICH_SK_L2 \
 This will output the address of the created contract, yours could be different. We'll put it in an environment variable.
 
 ```shell
-export LIQUIDITY_PROVIDER_ADDRESS=0x4b8d115d560c7c4988d2b8b84f411406574442ce
+export LIQUIDITY_PROVIDER_ADDRESS=0xd6fa63d2ccd1df9269650089f8c4c04b5c1bfef5
 ```
 
 ### Add liquidity to the pool by minting a new position
