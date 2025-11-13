@@ -45,7 +45,7 @@ export WETH_ADDRESS=0x000000000000000000000000000000000000FfFD
 rex send $WETH_ADDRESS --private-key $RICH_SK_L2 --value 100000000000000000000000
 ```
 
-This will mint 10 WETH. You can check your new balance with:
+This will mint 100k WETH. You can check your new balance with:
 
 ```shell
 rex call $WETH_ADDRESS "balanceOf(address)" 0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e
@@ -273,7 +273,7 @@ rex send $TEST_TOKEN_ADDRESS --private-key 0xdd5fcfb45b5702ba0b5c326d0fa29b28dfe
 3. Swap TEST for WETH
 
 ```shell
-rex send $SWAP_CONTRACT_ADDRESS  --private-key 0xdd5fcfb45b5702ba0b5c326d0fa29b28dfe4854e3fbd4e104bfae90cefe7732e "swapTestForWeth(uint256)" 1000000000000000000
+rex send $SWAP_CONTRACT_ADDRESS --private-key 0xdd5fcfb45b5702ba0b5c326d0fa29b28dfe4854e3fbd4e104bfae90cefe7732e "swapTestForWeth(uint256)" 1000000000000000000
 ```
 
 4. Check WETH balance
@@ -282,7 +282,7 @@ rex send $SWAP_CONTRACT_ADDRESS  --private-key 0xdd5fcfb45b5702ba0b5c326d0fa29b2
 rex call $WETH_ADDRESS "balanceOf(address)" 0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF
 ```
 
-You should have close to 1WETH minus the 0.3% fee.
+You should have close to 1 WETH minus the 0.3% fee.
 
 # Use the uniswap interface
 
