@@ -245,8 +245,9 @@ rex deploy 0 $RICH_SK_L2 \
 ```
 
 This will output the address of the Swap Contract. We'll put it in an environment variable.
-Yours could be different.
-TODO: Change this for deterministic deployment.
+
+> [!NOTE]
+> Yours could be different.
 
 ```shell
 export SWAP_CONTRACT_ADDRESS=0xd6a0c08a76a0cde4a1582f33ac25c1e21d9d62d3
