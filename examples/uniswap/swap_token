@@ -111,7 +111,7 @@ ensure_tools
 ensure_node_version
 
 log "Using RPC_URL=$RPC_URL"
-log "Using RICH_SK_L2 (hidden) and RICH_ADDRESS=$RICH_ADDRESS"
+log "Using RICH_SK_L2=$RICH_SK_L2 and RICH_ADDRESS=$RICH_ADDRESS"
 log "Using DETERMINISTIC_DEPLOYER=$DETERMINISTIC_DEPLOYER"
 log "Using WETH_ADDRESS=$WETH_ADDRESS"
 
