@@ -7,7 +7,18 @@
   - We recommend using [NVM](https://www.nvmnode.com/) to manage versions as we need to use v18 and v20.
 - [Rex](https://github.com/lambdaclass/rex)
 
-## Steps
+## Automated Flow
+
+You can let a script perform the full walkthrough (mint WETH, deploy TEST, deploy Uniswap v3, add liquidity, and swap TEST for WETH).
+
+Run:
+```shell
+./swap_token
+```
+
+The script always uses the demo values from this guide for `RPC_URL`, `RICH_SK_L2`, `DETERMINISTIC_DEPLOYER`, `WETH_ADDRESS`, and related addresses, overriding any values you may have set in your shell.
+
+## Manual Steps
 
 ### Set Initial Environment Variables
 

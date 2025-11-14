@@ -1,0 +1,284 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Uniswap v3 walkthrough automation script
+# Runs the steps from examples/uniswap/README.md up to and including
+# "Swap TEST for WETH". Can be run from the repo root or from
+# examples/uniswap/.
+
+### Config and helpers ###
+
+SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_NAME_EXPECTED="ethrex-l2-contracts-kit"
+
+log() { echo "[uniswap-setup] $*"; }
+die() { echo "[uniswap-setup][ERROR] $*" >&2; exit 1; }
+
+need_cmd() {
+  command -v "$1" >/dev/null 2>&1 || die "Required command '$1' not found in PATH"
+}
+
+ensure_repo_root() {
+  # Check for key files to ensure we are at repo root
+  [[ -f "$ROOT_DIR/README.md" ]] || die "Run from repo root (couldn't find README.md)"
+  [[ -f "$ROOT_DIR/fixtures/contracts/ERC20/TestToken.bin" ]] || die "Missing fixtures/contracts/ERC20/TestToken.bin (are you in the right repo root?)"
+  [[ -f "$ROOT_DIR/examples/uniswap/contracts/swap/LiquidityProvider.sol" ]] || die "Missing examples/uniswap/contracts/swap/LiquidityProvider.sol"
+  [[ -f "$ROOT_DIR/examples/uniswap/contracts/swap/Swap.sol" ]] || die "Missing examples/uniswap/contracts/swap/Swap.sol"
+}
+
+parse_json_field() {
+  # Usage: parse_json_field <json_file> <field>
+  # Tries jq if available, else a simple grep/sed fallback
+  local json_file="$1" field="$2"
+  if command -v jq >/dev/null 2>&1; then
+    jq -r ".${field}" "$json_file"
+  else
+    # naive fallback
+    grep -E "\"${field}\"" "$json_file" | head -n1 | sed -E 's/.*"'"${field}"'"\s*:\s*"([^"]+)".*/\1/'
+  fi
+}
+
+replace_in_file() {
+  # Portable in-place regex replace using perl
+  # Usage: replace_in_file <file> <perl_regex>
+  local file="$1" expr="$2"
+  perl -0777 -i -pe "$expr" "$file"
+}
+
+extract_address_from_output() {
+  # Reads stdin and extracts the last 0x-prefixed 40-hex address
+  sed -n '1,200p' | grep -aoE '0x[0-9a-fA-F]{40}' | tail -n1 || true
+}
+
+# Extract a solidity address returned as ABI-encoded 32-byte word.
+# Matches 0x followed by 24 zeros then 40 hex digits, and normalizes to 0x + 40 hex.
+extract_abi_address() {
+  # Reads stdin, removes whitespace, attempts to parse a 32-byte ABI-encoded address
+  local in
+  in=$(cat | tr -d '\n\r ')
+  local m
+  m=$(echo "$in" | grep -aoE '0x0{24}[0-9a-fA-F]{40}' | tail -n1 || true)
+  if [[ -n "$m" ]]; then
+    echo "$m" | sed -E 's/^0x0{24}/0x/'
+    return 0
+  fi
+  echo "$in" | grep -aoE '0x[0-9a-fA-F]{40}' | tail -n1 || true
+}
+
+ensure_tools() {
+  need_cmd git
+  need_cmd yarn
+  need_cmd node
+  need_cmd rex
+}
+
+ensure_node_version() {
+  # deploy-v3 needs Node 20
+  local v
+  v=$(node -v | sed 's/^v//')
+  local major=${v%%.*}
+  if [[ "$major" -lt 20 || "$major" -ge 21 ]]; then
+    log "Warning: Node $v detected; deploy-v3 recommends Node 20. Proceeding anyway."
+  fi
+}
+
+### Fixed configuration (overrides environment) ###
+
+export RPC_URL="http://localhost:1729"
+export RICH_SK_L2="0xe4f7dc8b199fdaac6693c9c412ea68aed9e1584d193e1c3478d30a6f01f26057"
+export DETERMINISTIC_DEPLOYER="0x4e59b44847b379578588920ca78fbf26c0b4956c"
+export WETH_ADDRESS="0x000000000000000000000000000000000000FfFD"
+
+# Known addresses from README (derived from the above private keys)
+RICH_ADDRESS="0x0000bd19F707CA481886244bDd20Bd6B8a81bd3e"
+
+# TEST token fixed address per deterministic deployer + salt 0
+export TEST_TOKEN_ADDRESS="0xB66dd10F098f62141A536e92f6e8f7f9633893E2"
+
+# Empty account used for the final swap
+EMPTY_ACCOUNT_ADDRESS="0x41F31fBf85a69c9F3a1635bBF8F602F6e78F3aDF"
+EMPTY_ACCOUNT_SK="0xdd5fcfb45b5702ba0b5c326d0fa29b28dfe4854e3fbd4e104bfae90cefe7732e"
+
+# Deploy-v3 deployer as per README
+DEPLOY_V3_PK="0x1bc8b78019f35d4447a774e837d414a3db9e1dea5cfc4e9dc2fc3904969ab51f"
+
+### Run ###
+
+ensure_repo_root
+ensure_tools
+ensure_node_version
+
+log "Using RPC_URL=$RPC_URL"
+log "Using RICH_SK_L2=$RICH_SK_L2 and RICH_ADDRESS=$RICH_ADDRESS"
+log "Using DETERMINISTIC_DEPLOYER=$DETERMINISTIC_DEPLOYER"
+log "Using WETH_ADDRESS=$WETH_ADDRESS"
+
+### Step: Get WETH on L2 (mint via deposit) ###
+log "Minting WETH on L2 by sending ETH to WETH contract..."
+rex send "$WETH_ADDRESS" --private-key "$RICH_SK_L2" --value 100000000000000000000000 >/dev/null
+log "WETH mint transaction sent. Checking balance for $RICH_ADDRESS..."
+rex call "$WETH_ADDRESS" "balanceOf(address)" "$RICH_ADDRESS" || true
+
+### Step: Deploy TEST token (deterministic deployer) ###
+log "Preparing deterministic deployment calldata for TEST token..."
+BIN_PATH="$ROOT_DIR/fixtures/contracts/ERC20/TestToken.bin"
+[[ -f "$BIN_PATH" ]] || die "Cannot find $BIN_PATH"
+BIN_HEX=$(tr -d '\n\r ' < "$BIN_PATH")
+[[ -n "$BIN_HEX" ]] || die "Empty TestToken.bin"
+CALLDATA="0x$(printf '%064d' 0)${BIN_HEX}"
+log "Deploying TEST token via deterministic deployer..."
+rex send "$DETERMINISTIC_DEPLOYER" --private-key "$RICH_SK_L2" --calldata "$CALLDATA" >/dev/null || true
+
+log "Minting free TEST tokens to rich account..."
+rex send "$TEST_TOKEN_ADDRESS" --private-key "$RICH_SK_L2" "freeMint()" >/dev/null
+rex call "$TEST_TOKEN_ADDRESS" "balanceOf(address)" "$RICH_ADDRESS" || true
+
+### Step: Deploy Uniswap v3 suite using deploy-v3 ###
+DEPLOY_DIR="$ROOT_DIR/deploy-v3"
+if [[ ! -d "$DEPLOY_DIR" ]]; then
+  log "Cloning deploy-v3..."
+  git clone https://github.com/lambdaclass/deploy-v3 "$DEPLOY_DIR"
+fi
+pushd "$DEPLOY_DIR" >/dev/null
+log "Checking out commit 84dd40ac..."
+git fetch --all >/dev/null 2>&1 || true
+git checkout 84dd40ac >/dev/null
+log "Installing dependencies (yarn install)..."
+yarn install --silent
+log "Removing old state.json if present..."
+rm -f state.json
+log "Deploying Uniswap v3 contracts (this may take a while)..."
+NODE_OPTIONS=--openssl-legacy-provider yarn start \
+  --private-key "$DEPLOY_V3_PK" \
+  --weth9-address "$WETH_ADDRESS" \
+  --json-rpc "$RPC_URL" \
+  --native-currency-label "ETH" \
+  --owner-address 0x0000000000000000000000000000000000000001
+
+[[ -f state.json ]] || die "deploy-v3 did not produce state.json"
+log "Deployed contracts (state.json):"
+cat state.json
+
+FACTORY_ADDRESS=$(parse_json_field state.json v3CoreFactoryAddress)
+NFT_POSITION_MANAGER=$(parse_json_field state.json nonfungibleTokenPositionManagerAddress)
+SWAP_ROUTER02=$(parse_json_field state.json swapRouter02)
+
+[[ -n "$FACTORY_ADDRESS" ]] || die "Failed to parse v3CoreFactoryAddress"
+[[ -n "$NFT_POSITION_MANAGER" ]] || die "Failed to parse nonfungibleTokenPositionManagerAddress"
+[[ -n "$SWAP_ROUTER02" ]] || die "Failed to parse swapRouter02"
+
+export FACTORY_ADDRESS
+log "Factory address: $FACTORY_ADDRESS"
+log "NFT Position Manager: $NFT_POSITION_MANAGER"
+log "SwapRouter02: $SWAP_ROUTER02"
+popd >/dev/null
+
+### Step: Create liquidity pool WETH/TEST with fee 0.3% (3000) ###
+log "Creating liquidity pool WETH/TEST with fee 0.3% (3000)..."
+rex send "$FACTORY_ADDRESS" --private-key "$RICH_SK_L2" "createPool(address,address,uint24)" "$WETH_ADDRESS" "$TEST_TOKEN_ADDRESS" 3000 >/dev/null || true
+log "Fetching created pool address..."
+LIQUIDITY_POOL_ADDRESS=$(rex call "$FACTORY_ADDRESS" "getPool(address,address,uint24)" "$TEST_TOKEN_ADDRESS" "$WETH_ADDRESS" 3000 | extract_abi_address)
+[[ -n "$LIQUIDITY_POOL_ADDRESS" && "$LIQUIDITY_POOL_ADDRESS" != "0x0000000000000000000000000000000000000000" ]] || die "Could not determine liquidity pool address"
+[[ ${#LIQUIDITY_POOL_ADDRESS} -eq 42 ]] || die "Parsed pool address has wrong length: '$LIQUIDITY_POOL_ADDRESS'"
+
+[[ ${#LIQUIDITY_POOL_ADDRESS} -eq 42 ]] || die "Parsed pool address has wrong length: '$LIQUIDITY_POOL_ADDRESS'"
+export LIQUIDITY_POOL_ADDRESS
+log "Liquidity Pool: $LIQUIDITY_POOL_ADDRESS"
+
+### Step: Initialize pool at price 1:1 (sqrtPriceX96 = 2^96) ###
+log "Initializing pool with sqrtPriceX96=2^96..."
+rex send "$LIQUIDITY_POOL_ADDRESS" --private-key "$RICH_SK_L2" "initialize(uint160)" 79228162514264337593543950336 >/dev/null || true
+
+### Step: Prepare and deploy LiquidityProvider contract ###
+SWAP_DIR="$ROOT_DIR/examples/uniswap/contracts/swap"
+pushd "$SWAP_DIR" >/dev/null
+if [[ ! -d deps ]]; then
+  log "Fetching contract dependencies (make deps)..."
+  make deps
+else
+  log "Dependencies already present at $SWAP_DIR/deps, skipping make deps"
+fi
+
+LP_FILE="$SWAP_DIR/LiquidityProvider.sol"
+log "Patching LiquidityProvider.sol with deployed addresses..."
+replace_in_file "$LP_FILE" 's/(address\s+public\s+constant\s+WETH\s*=\s*)0x[0-9a-fA-F]{40}/${1}'"$WETH_ADDRESS"'/g'
+replace_in_file "$LP_FILE" 's/(address\s+public\s+constant\s+TEST_TOKEN\s*=\s*)0x[0-9a-fA-F]{40}/${1}'"$TEST_TOKEN_ADDRESS"'/g'
+replace_in_file "$LP_FILE" 's#(INonfungiblePositionManager\s+public\s+immutable\s+nonfungiblePositionManager\s*=\s*INonfungiblePositionManager\()0x[0-9a-fA-F]{40}(\);)#${1}'"$NFT_POSITION_MANAGER"'${2}#g'
+
+log "Deploying LiquidityProvider.sol via rex deploy..."
+LP_DEPLOY_OUT=$(rex deploy 0 "$RICH_SK_L2" \
+  --contract-path LiquidityProvider.sol \
+  --remappings "@openzeppelin/=deps/openzeppelin-contracts/,@uniswap/=deps/,@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol=deps/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol,@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol=deps/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Metadata.sol" || true)
+echo "$LP_DEPLOY_OUT"
+LIQUIDITY_PROVIDER_ADDRESS=$(echo "$LP_DEPLOY_OUT" | extract_address_from_output)
+[[ -n "$LIQUIDITY_PROVIDER_ADDRESS" ]] || die "Failed to detect LiquidityProvider address"
+export LIQUIDITY_PROVIDER_ADDRESS
+log "LiquidityProvider deployed at: $LIQUIDITY_PROVIDER_ADDRESS"
+
+### Step: Approve tokens and mint LP position ###
+log "Approving LiquidityProvider to spend WETH and TEST..."
+rex send "$WETH_ADDRESS" --private-key "$RICH_SK_L2" "approve(address, uint256)" "$LIQUIDITY_PROVIDER_ADDRESS" 1000000000000000000000000000000 >/dev/null
+rex send "$TEST_TOKEN_ADDRESS" --private-key "$RICH_SK_L2" "approve(address, uint256)" "$LIQUIDITY_PROVIDER_ADDRESS" 1000000000000000000000000000000 >/dev/null
+
+log "Minting a new LP position..."
+rex send "$LIQUIDITY_PROVIDER_ADDRESS" --private-key "$RICH_SK_L2" "mint()" >/dev/null || true
+log "Pool liquidity after mint:"
+rex call "$LIQUIDITY_POOL_ADDRESS" "liquidity()" || true
+
+### Step: Deploy Swap.sol contract ###
+SWAP_FILE="$SWAP_DIR/Swap.sol"
+log "Patching Swap.sol with deployed addresses..."
+replace_in_file "$SWAP_FILE" 's#(IV3SwapRouter\s+public\s+immutable\s+swapRouter\s*=\s*IV3SwapRouter\()0x[0-9a-fA-F]{40}(\);)#${1}'"$SWAP_ROUTER02"'${2}#g'
+replace_in_file "$SWAP_FILE" 's/(address\s+public\s+constant\s+WETH\s*=\s*)0x[0-9a-fA-F]{40}/${1}'"$WETH_ADDRESS"'/g'
+replace_in_file "$SWAP_FILE" 's/(address\s+public\s+constant\s+TEST_TOKEN\s*=\s*)0x[0-9a-fA-F]{40}/${1}'"$TEST_TOKEN_ADDRESS"'/g'
+
+log "Deploying Swap.sol via rex deploy..."
+SWAP_DEPLOY_OUT=$(rex deploy 0 "$RICH_SK_L2" \
+  --contract-path Swap.sol \
+  --remappings "@swap-router-contracts/=deps/swap-router-contracts/,@openzeppelin/=deps/openzeppelin-contracts/,@uniswap/v3-periphery/=deps/v3-periphery/,@uniswap/v3-core/=deps/v3-core/" || true)
+echo "$SWAP_DEPLOY_OUT"
+SWAP_CONTRACT_ADDRESS=$(echo "$SWAP_DEPLOY_OUT" | extract_address_from_output)
+[[ -n "$SWAP_CONTRACT_ADDRESS" ]] || die "Failed to detect Swap contract address"
+export SWAP_CONTRACT_ADDRESS
+log "Swap contract deployed at: $SWAP_CONTRACT_ADDRESS"
+
+### Step: Swap TEST for WETH ###
+log "Transferring TEST and ETH to empty account $EMPTY_ACCOUNT_ADDRESS..."
+rex send --private-key "$RICH_SK_L2" "$TEST_TOKEN_ADDRESS" "transfer(address,uint256)" "$EMPTY_ACCOUNT_ADDRESS" 1000000000000000000 >/dev/null
+rex send "$EMPTY_ACCOUNT_ADDRESS" --private-key "$RICH_SK_L2" --value 1000000000000000000 >/dev/null
+
+log "Approving Swap contract to spend TEST from empty account..."
+rex send "$TEST_TOKEN_ADDRESS" --private-key "$EMPTY_ACCOUNT_SK" "approve(address, uint256)" "$SWAP_CONTRACT_ADDRESS" 10000000000000000000 >/dev/null
+
+log "Swapping 1 TEST for WETH from empty account..."
+rex send "$SWAP_CONTRACT_ADDRESS" --private-key "$EMPTY_ACCOUNT_SK" "swapTestForWeth(uint256)" 1000000000000000000 || true
+
+log "WETH balance of $EMPTY_ACCOUNT_ADDRESS after swap:"
+BAL_HEX=$(rex call "$WETH_ADDRESS" "balanceOf(address)" "$EMPTY_ACCOUNT_ADDRESS" | tr -d '\n\r ' | grep -aoE '0x[0-9a-fA-F]{64}' | tail -n1 || true)
+echo "${BAL_HEX:-0x0}"
+
+if [[ -n "${BAL_HEX:-}" ]]; then
+  # Print decimal (wei) and WETH (18 decimals) using Node for BigInt math
+  node -e '
+    const s = process.argv[1];
+    try {
+      const wei = BigInt(s);
+      const dec = wei.toString();
+      const D = 10n ** 18n;
+      const whole = wei / D;
+      const fracRaw = (wei % D).toString().padStart(18, "0");
+      const frac = fracRaw.replace(/0+$/, "");
+      const eth = frac.length ? `${whole.toString()}.${frac}` : whole.toString();
+      console.log(`[uniswap-setup] Decimal (wei): ${dec}`);
+      console.log(`[uniswap-setup] WETH (18dp): ${eth}`);
+    } catch (e) {
+      console.log(`[uniswap-setup] Could not parse balance`);
+    }
+  ' "${BAL_HEX}"
+fi
+
+popd >/dev/null
+
+log "All steps completed."
