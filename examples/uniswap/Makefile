@@ -2,6 +2,9 @@ deploy:
 	. ~/.nvm/nvm.sh && nvm install 20 && nvm use 20
 	bash swap_token
 
+front-dir:
+	mkdir front
+
 sdk-core:
 	. ~/.nvm/nvm.sh && nvm install 22 && nvm use 22
 	cd front && \
@@ -42,13 +45,13 @@ universal-router-sdk:
 		yarn install && \
 		yarn build
 
-ui-deps: sdk-core smart-order-router permit2 universal-router universal-router-sdk
+ui-deps: front-dir sdk-core smart-order-router permit2 universal-router universal-router-sdk
 	
 ui-api:
 	cd front && \
 		git clone -b ethrex_support https://github.com/lambdaclass/routing-api
 	cd front/routing-api && \
-		. ~/.nvm/nvm.sh && nvm use 20 && \
+		. ~/.nvm/nvm.sh && nvm use 18 && \
 		npm install && \
 		npm run sls:dev
 
