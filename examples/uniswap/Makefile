@@ -6,7 +6,7 @@ front-dir:
 	mkdir front
 
 sdk-core:
-	. ~/.nvm/nvm.sh && nvm install 22 && nvm use 22
+	. ~/.nvm/nvm.sh && nvm install 18 && nvm use 18
 	cd front && \
 		git clone -b ethrex_support https://github.com/lambdaclass/sdk-core
 	cd front/sdk-core && \
@@ -59,7 +59,7 @@ ui-web:
 	cd front && \
 		git clone -b ethrex_support https://github.com/lambdaclass/uniswap-interface
 	cd front/uniswap-interface && \
-		. ~/.nvm/nvm.sh && nvm use 22 && \
+		. ~/.nvm/nvm.sh && nvm use 18 && \
 		corepack enable && \
 		yarn install && \
 		yarn web start
